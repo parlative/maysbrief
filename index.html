@@ -440,16 +440,6 @@
       </div>
     </div>
     <div id="week-section"></div>
-    <div id="news-section">
-      <div class="card"><div class="card-title">📰 Breaking News</div>
-        <div class="shimmer"></div><div class="shimmer"></div><div class="shimmer" style="width:70%"></div>
-      </div>
-    </div>
-    <div id="war-section">
-      <div class="card war-card"><div class="card-title">🔴 Israel · USA · Iran</div>
-        <div class="shimmer"></div><div class="shimmer" style="width:80%"></div>
-      </div>
-    </div>
     <div id="todo-section"></div>
     <div id="photo-section"></div>
     <div id="word-section"></div>
@@ -460,15 +450,25 @@
         <div class="shimmer" style="width:55%;height:13px;margin-top:8px"></div>
       </div>
     </div>
+    <div id="news-section">
+      <div class="card"><div class="card-title">📰 Breaking News</div>
+        <div class="shimmer"></div><div class="shimmer"></div><div class="shimmer" style="width:70%"></div>
+      </div>
+    </div>
+    <div id="war-section">
+      <div class="card war-card"><div class="card-title">🔴 Israel · USA · Iran</div>
+        <div class="shimmer"></div><div class="shimmer" style="width:80%"></div>
+      </div>
+    </div>
     <div id="recipe-section"></div>
   </div>
 </div>
 
 <!-- ═══ PAGE 2: EVENING SUMMARY ═══ -->
 <div id="page-evening" class="page">
-  <div class="summary-header">
+  <div class="summary-header" style="position:sticky;top:0;z-index:90;">
     <div class="summary-stars">⭐ ✨ 🌙</div>
-    <div class="summary-title">Tages­zusammenfassung</div>
+    <div class="summary-title">Evening Summary</div>
     <div id="summary-date" class="summary-sub"></div>
   </div>
   <div class="summary-content" id="summary-content">
@@ -1288,70 +1288,105 @@ function renderMotivation() {
 function renderSummary() {
   const now=new Date();
   const h=now.getHours();
-  const days=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-  const months=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('summary-date').textContent=
-    `${days[now.getDay()]}, ${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()}`;
+    `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
 
   if(h < 20) {
     document.getElementById('summary-content').innerHTML=`
       <div class="evening-locked">
         <div class="evening-locked-icon">🔒</div>
-        <div class="evening-locked-time">Ab 20:00 Uhr</div>
-        <div class="evening-locked-text">Die Tageszusammenfassung wird jeden Abend ab 20:00 Uhr freigeschaltet.</div>
+        <div class="evening-locked-time">Available from 20:00</div>
+        <div class="evening-locked-text">Your evening summary unlocks every night at 8pm.</div>
       </div>`;
     return;
   }
 
-  // Weather recap
-  let weatherHtml='<p class="summary-unavail">Wetterdaten nicht geladen</p>';
+  // Weather today recap
+  let weatherTodayHtml='<p class="summary-unavail">Weather data not loaded</p>';
+  let weatherTomorrowHtml='<p class="summary-unavail">Weather data not loaded</p>';
   if(_weatherCache) {
-    const {c,d}=_weatherCache;
-    weatherHtml=`
+    const {c,d,city}=_weatherCache;
+    weatherTodayHtml=`
       <div class="weather-recap-row">
         <div class="wr-item"><span>🌡️ Max</span><strong>${Math.round(d.temperature_2m_max[0])}°</strong></div>
         <div class="wr-item"><span>🥶 Min</span><strong>${Math.round(d.temperature_2m_min[0])}°</strong></div>
         <div class="wr-item"><span>${wIcon(c.weather_code)}</span><strong>${wDesc(c.weather_code)}</strong></div>
-        <div class="wr-item"><span>💧 Regen</span><strong>${d.precipitation_sum[0]>0?d.precipitation_sum[0].toFixed(1)+'mm':'Kein'}</strong></div>
+        <div class="wr-item"><span>💧 Rain</span><strong>${d.precipitation_sum[0]>0?d.precipitation_sum[0].toFixed(1)+'mm':'None'}</strong></div>
       </div>`;
+    if(d.time && d.time[1]) {
+      weatherTomorrowHtml=`
+        <div class="weather-recap-row">
+          <div class="wr-item"><span>🌡️ Max</span><strong>${Math.round(d.temperature_2m_max[1])}°</strong></div>
+          <div class="wr-item"><span>🥶 Min</span><strong>${Math.round(d.temperature_2m_min[1])}°</strong></div>
+          <div class="wr-item"><span>${wIcon(d.weather_code[1])}</span><strong>${wDesc(d.weather_code[1])}</strong></div>
+          <div class="wr-item"><span>💧 Rain</span><strong>${d.precipitation_sum[1]>0?d.precipitation_sum[1].toFixed(1)+'mm':'None'}</strong></div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <div class="mm-pill mm-min" style="flex:1;text-align:center;border-radius:12px;padding:8px;background:#e8f4ff;"><span style="font-size:10px;color:#6e6e73;display:block;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">🥶 Min</span><strong style="font-size:18px;font-weight:700;color:#0a84ff;">${Math.round(d.temperature_2m_min[1])}°</strong></div>
+          <div class="mm-pill mm-max" style="flex:1;text-align:center;border-radius:12px;padding:8px;background:#fff0f0;"><span style="font-size:10px;color:#6e6e73;display:block;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">🔥 Max</span><strong style="font-size:18px;font-weight:700;color:#ff375f;">${Math.round(d.temperature_2m_max[1])}°</strong></div>
+          <div style="flex:2;background:var(--bg);border-radius:12px;padding:8px;text-align:center;"><span style="font-size:22px;">${wIcon(d.weather_code[1])}</span><div style="font-size:12px;color:var(--text);font-weight:600;margin-top:2px;">${wDesc(d.weather_code[1])}</div></div>
+        </div>
+        <div style="margin-top:6px;font-size:12px;color:var(--subtext);text-align:center;">☔ Rain probability: ${d.precipitation_probability_max?d.precipitation_probability_max[1]:0}%</div>`;
+    }
   }
 
   // Steps recap
   const steps=getSteps();
   const extra=extraCalories(steps);
+  const pct=Math.min(steps/STEP_GOAL,1);
   const stepsHtml=`
     <div class="steps-recap">
       <div class="steps-recap-num">${steps.toLocaleString('de-DE')}</div>
       <div class="steps-recap-info">
-        <span>Tagesziel: ${STEP_GOAL.toLocaleString('de-DE')}</span>
-        <strong>${steps>=STEP_GOAL?'✅ Ziel erreicht!':'Ziel nicht erreicht'}</strong>
-        ${extra>0?`<span style="color:#059669">+${extra} kcal Extra 🔥</span>`:''}
+        <span>Goal: ${STEP_GOAL.toLocaleString('de-DE')}</span>
+        <strong style="color:${steps>=STEP_GOAL?'#16a34a':'#ff375f'}">${steps>=STEP_GOAL?'✅ Goal reached!':'❌ Goal not reached'}</strong>
+        ${extra>0?`<span style="color:#059669">+${extra} kcal bonus 🔥</span>`:''}
+        <span style="color:#bbb">${Math.round(pct*100)}% of goal</span>
       </div>
     </div>`;
 
-  // News recap (last loaded)
+  // Open todos today
+  const todos=getTodos().filter(t=>t.date===todayStr()&&!t.done);
+  const openTodosHtml = todos.length ? todos.map(t=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div style="width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;flex-shrink:0;"></div>
+      <span style="font-size:14px;font-weight:500;color:var(--text);">${t.text}</span>
+    </div>`).join('') :
+    `<p style="font-size:14px;color:#16a34a;text-align:center;padding:10px 0;">✅ All tasks completed!</p>`;
+
+  // News recap
   const newsItems=document.getElementById('news-section').querySelectorAll('.news-text');
   const newsHtml=newsItems.length ? Array.from(newsItems).map((el,i)=>`
     <div class="recap-item">
       <div class="recap-num">${i+1}</div>
       <div class="recap-text">${el.textContent}</div>
-    </div>`).join('') : '<p class="summary-unavail">Keine News geladen</p>';
+    </div>`).join('') : '<p class="summary-unavail">No news loaded</p>';
 
-  // Motivation recap
+  // Motivation
   const motEl=document.getElementById('motivation-section').querySelector('.motivation-quote');
   const motText=motEl?motEl.textContent:'"–"';
 
   document.getElementById('summary-content').innerHTML=`
     <div class="summary-card" style="animation-delay:0.05s">
-      <div class="summary-card-title">🌡️ Wetter heute</div>
-      ${weatherHtml}
+      <div class="summary-card-title">🌡️ Today's Weather</div>
+      ${weatherTodayHtml}
+    </div>
+    <div class="summary-card" style="animation-delay:0.08s">
+      <div class="summary-card-title">🌤️ Tomorrow's Weather</div>
+      ${weatherTomorrowHtml}
     </div>
     <div class="summary-card" style="animation-delay:0.1s">
-      <div class="summary-card-title">👟 Schritte heute</div>
+      <div class="summary-card-title">👟 Steps Today</div>
       ${stepsHtml}
     </div>
+    <div class="summary-card" style="animation-delay:0.13s;border-left:4px solid #f59e0b;">
+      <div class="summary-card-title">☑️ Open Tasks Today (${todos.length})</div>
+      ${openTodosHtml}
+    </div>
     <div class="summary-card" style="animation-delay:0.15s">
-      <div class="summary-card-title">📰 Top News des Tages</div>
+      <div class="summary-card-title">📰 Top News</div>
       ${newsHtml}
     </div>
     <div class="summary-card motivation-card" style="animation-delay:0.2s">
@@ -1746,33 +1781,44 @@ function shareCard(cardId, emoji, title) {
 // ═══════════════════════════════════════════════════════
 // PHOTO OF THE DAY
 // ═══════════════════════════════════════════════════════
-// Daily photos: 3 categories rotating by day-of-year
-// Sources: Unsplash (no API key needed for static photo IDs) + NASA APOD
-const photoCategories = [
-  { tag: '🌿 Natur',       queries: ['nature','forest','ocean','mountains','sunset','flowers','landscape'] },
-  { tag: '🏙️ Städte',      queries: ['new-york','architecture','city','los-angeles','tokyo','paris','skyline'] },
-  { tag: '🏛️ Tbilisi',     queries: ['tbilisi','georgia-country','caucasus','old-town','church','cobblestone'] },
-  { tag: '💪 Fitness',     queries: ['fitness','workout','gym','running','yoga','sport','strength'] },
-  { tag: '🐕 Pomeranian',  queries: ['pomeranian','dog','puppy','fluffy-dog','spitz','cute-dog'] },
-  { tag: '💄 Beauty',      queries: ['beauty','makeup','skincare','cosmetics','fashion','style'] },
-  { tag: '✨ Inspiration',  queries: ['inspiration','minimal','aesthetic','morning','light','calm'] },
+// Kuratierte hochwertige Bilder via Unsplash (direkte Foto-IDs, immer verfügbar)
+// Jede Kategorie hat echte Unsplash Photo-IDs — keine zufälligen Redirects
+const photoCurated = [
+  { tag:'🌅 Sonnenaufgang', photos:[
+    {id:'1506905489827-e2df1f07abe4',cap:'Goldener Morgen'}, {id:'1470770841072-f978cf4d019e',cap:'Morgenlicht'},
+    {id:'1501854140801-50d01698950b',cap:'Sonnenaufgang'},   {id:'1464822759023-fed622ff2c3b',cap:'Frühmorgensonne'},
+  ]},
+  { tag:'🌿 Natur',  photos:[
+    {id:'1441974231531-c6227db76b6e',cap:'Grüner Wald'},     {id:'1518173946687-a71ca18a43b0',cap:'Naturpfad'},
+    {id:'1506905489827-e2df1f07abe4',cap:'Berglandschaft'},  {id:'1469474968028-56623f02e42e',cap:'Wasserfall'},
+  ]},
+  { tag:'🏙️ Architektur', photos:[
+    {id:'1486325212027-8081e485255e',cap:'Moderne Stadt'},    {id:'1477959858617-67f85cf4f1df',cap:'Skyline'},
+    {id:'1449824913935-59a10b8d2000',cap:'Stadtleben'},       {id:'1480714378408-67cf0d13bc1b',cap:'Metropole'},
+  ]},
+  { tag:'🌊 Ozean',  photos:[
+    {id:'1505118380757-91f5f5632de0',cap:'Türkises Meer'},    {id:'1507525428034-b723cf961d3e',cap:'Strandidyll'},
+    {id:'1484291470158-b8f8d608850d',cap:'Meereswellen'},     {id:'1520942702018-0b8ab6b33e26',cap:'Horizont'},
+  ]},
+  { tag:'🌸 Blumen', photos:[
+    {id:'1490750967868-88df5691cc9b',cap:'Kirschblüte'},      {id:'1465146344425-f00d5f5c8f07',cap:'Wildblumen'},
+    {id:'1444930694458-01babf71870c',cap:'Blütenmeer'},       {id:'1478872996143-aa14a7c8d44e',cap:'Rosenblüte'},
+  ]},
+  { tag:'✨ Minimal', photos:[
+    {id:'1494438639946-1ebd1d20bf85',cap:'Stille'},          {id:'1507003211169-0a1dd7228f2d',cap:'Reinheit'},
+    {id:'1487017159836-4e23ece2e4ad',cap:'Klarheit'},         {id:'1511300636408-a63a89df3482',cap:'Einfachheit'},
+  ]},
+  { tag:'🏔️ Berge',  photos:[
+    {id:'1464822759023-fed622ff2c3b',cap:'Alpengipfel'},      {id:'1454496522488-7a8e488e8606',cap:'Bergsee'},
+    {id:'1483728642387-6c3bdd6c93e5',cap:'Bergpanorama'},     {id:'1519681393784-d120267933ba',cap:'Schneeberge'},
+  ]},
 ];
 
-function getDailyPhotos() {
-  const doy = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0))/86400000);
-  // Pick 3 different categories for today
-  const cats = [];
-  for (let i = 0; i < 3; i++) {
-    cats.push(photoCategories[(doy + i * 3) % photoCategories.length]);
-  }
-  return cats;
-}
-
 async function loadPhotos() {
-  const cats = getDailyPhotos();
   const doy = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0))/86400000);
+  // 3 verschiedene Kategorien heute
+  const cats = [0,1,2].map(i => photoCurated[(doy + i * 2) % photoCurated.length]);
 
-  // Unsplash Source API redirect — show loading state first
   document.getElementById('photo-section').innerHTML = `
     <div class="card photo-card">
       <div class="card-header" style="padding:14px 15px 0">
@@ -1780,30 +1826,24 @@ async function loadPhotos() {
         <button class="share-btn" onclick="shareCard('photo-section','📸','Photos of the Day')">⎙ Teilen</button>
       </div>
       <div class="photo-gallery" id="photo-gallery-inner">
-        <div style="width:160px;height:160px;border-radius:12px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">⏳</div>
-        <div style="width:160px;height:160px;border-radius:12px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">⏳</div>
-        <div style="width:160px;height:160px;border-radius:12px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">⏳</div>
+        ${cats.map(()=>`<div style="width:160px;height:160px;border-radius:12px;background:linear-gradient(135deg,#f0f0f0,#e8e8e8);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px">⏳</div>`).join('')}
       </div>
     </div>`;
 
-  const photos = cats.map((cat, i) => {
-    const query = cat.queries[(doy + i) % cat.queries.length];
-    const seed = `maya-${doy}-${i}`;
-    // 4K resolution: 3840x2160 from Unsplash, fallback Picsum 3840x2160
-    const unsplashUrl = `https://source.unsplash.com/3840x2160/?${encodeURIComponent(query)}&sig=${seed}`;
-    const picsumUrl = `https://picsum.photos/seed/${seed}/3840/2160`;
-    return { unsplashUrl, picsumUrl, tag: cat.tag, caption: query.replace(/-/g,' ') };
-  });
-
-  const galleryHtml = photos.map((p) => `
-    <div class="photo-item" onclick="openLightbox(this.querySelector('img').src,'${p.tag} — ${p.caption}')">
-      <img src="${p.unsplashUrl}" alt="${p.caption}"
-        onerror="this.src='${p.picsumUrl}'"
-        style="width:160px;height:160px;object-fit:cover;display:block;border-radius:12px"
-        loading="lazy">
-      <div class="photo-tag">${p.tag}</div>
-      <div class="photo-caption">${p.caption}</div>
-    </div>`).join('');
+  const galleryHtml = cats.map((cat, i) => {
+    const p = cat.photos[(doy + i) % cat.photos.length];
+    // Unsplash direkte Bild-URL (immer verfügbar, kein API-Key nötig)
+    const src = `https://images.unsplash.com/photo-${p.id}?w=800&h=800&fit=crop&q=85&auto=format`;
+    const srcLarge = `https://images.unsplash.com/photo-${p.id}?w=1600&h=1600&fit=crop&q=90&auto=format`;
+    return `
+      <div class="photo-item" onclick="openLightbox('${srcLarge}','${cat.tag} — ${p.cap}')">
+        <img src="${src}" alt="${p.cap}"
+          style="width:160px;height:160px;object-fit:cover;display:block;border-radius:12px"
+          loading="lazy">
+        <div class="photo-tag">${cat.tag}</div>
+        <div class="photo-caption">${p.cap}</div>
+      </div>`;
+  }).join('');
 
   const inner = document.getElementById('photo-gallery-inner');
   if (inner) inner.innerHTML = galleryHtml;
@@ -2281,15 +2321,19 @@ const recipes = [
   },
 ];
 
-function renderRecipe() {
+let _recipeOffset = 0; // user can browse recipes with arrows
+
+function renderRecipe(offset) {
+  if (offset !== undefined) _recipeOffset = offset;
   const now = new Date();
   const doy = Math.floor((now - new Date(now.getFullYear(),0,0))/86400000);
-  const r = recipes[doy % recipes.length];
+  const idx = ((doy + _recipeOffset) % recipes.length + recipes.length) % recipes.length;
+  const r = recipes[idx];
+  const total = recipes.length;
 
   const ingHtml = r.ingredients.map(([name, amount, kcal]) =>
     `<li><span>${name} <span style="color:#bbb;font-size:11px">${amount}</span></span><span style="color:#a05020;font-size:11px">${kcal}</span></li>`
   ).join('');
-
   const stepsHtml = r.steps.map((s, i) => `<div class="recipe-step" data-n="${i+1}">${s}</div>`).join('');
 
   document.getElementById('recipe-section').innerHTML = `
@@ -2297,6 +2341,11 @@ function renderRecipe() {
       <div class="card-header">
         <div class="card-title">🍽️ Rezept des Tages</div>
         <button class="share-btn" onclick="shareRecipe()">⎙ Teilen</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <button onclick="haptic();renderRecipe(${_recipeOffset - 1})" style="background:#fff3e8;border:1.5px solid #f8c8a0;border-radius:12px;padding:8px 16px;font-size:18px;cursor:pointer;color:#a05020;font-weight:700;">←</button>
+        <span style="font-size:11px;color:#bbb;font-weight:600;">${((idx+1))} / ${total}</span>
+        <button onclick="haptic();renderRecipe(${_recipeOffset + 1})" style="background:#fff3e8;border:1.5px solid #f8c8a0;border-radius:12px;padding:8px 16px;font-size:18px;cursor:pointer;color:#a05020;font-weight:700;">→</button>
       </div>
       <span class="recipe-kcal-badge">${r.badge} · ${r.kcal} kcal</span>
       <div class="recipe-name">${r.name}</div>
@@ -2363,11 +2412,13 @@ function loadAll(isScheduled=false) {
 }
 
 async function refresh() {
+  haptic('heavy');
   const btn=document.getElementById('refresh-btn');
   btn.classList.add('loading');
   loadAll(false);
   await new Promise(r=>setTimeout(r,1400));
   btn.classList.remove('loading');
+  haptic('medium');
 }
 
 loadAll();
