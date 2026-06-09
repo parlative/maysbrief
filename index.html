@@ -1288,10 +1288,15 @@ const words = [
   {w:"Intrepid",ph:"/ɪnˈtrepɪd/",pos:"adjective",def:"Fearless; adventurous.",ex:'"She was an intrepid explorer of new ideas."',de:"Unerschrocken, furchtlos, mutig"},
 ];
 
+function getDailyIndex(arrayLen) {
+  // Wechselt täglich um Mitternacht — basiert auf absolutem Tagesdatum
+  const now = new Date();
+  const daysSinceEpoch = Math.floor(now.getTime() / 86400000);
+  return daysSinceEpoch % arrayLen;
+}
+
 function renderWord() {
-  const now=new Date();
-  const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
-  const w=words[doy%words.length];
+  const w=words[getDailyIndex(words.length)];
   document.getElementById('word-section').innerHTML=`
     <div class="card word-card">
       <div class="card-header">
@@ -1396,9 +1401,7 @@ const quotes=[
 ];
 
 function renderMotivation() {
-  const now=new Date();
-  const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
-  const q=quotes[doy%quotes.length];
+  const q=quotes[getDailyIndex(quotes.length)];
   document.getElementById('motivation-section').innerHTML=`
     <div class="card motivation-card">
       <div class="card-header">
@@ -1490,8 +1493,7 @@ function renderSummary() {
     <div style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-top:8px;">Jetzt einschlafen für einen vollständigen Schlafzyklus</div>`;
 
   // Evening Quote
-  const doy = Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
-  const eq = eveningQuotes[doy % eveningQuotes.length];
+  const eq = eveningQuotes[getDailyIndex(eveningQuotes.length)];
 
   // Reflection
   const savedReflect = getReflection();
@@ -1730,13 +1732,12 @@ async function generateInstagramImage(type) {
   const ctx = canvas.getContext('2d');
 
   const now = new Date();
-  const doy = Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
   const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
   const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
   const dateStr = `${days[now.getDay()]}, ${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()}`;
 
   if (type === 'quote') {
-    const q = quotes[doy % quotes.length];
+    const q = quotes[getDailyIndex(quotes.length)];
     // Gradient background
     const grad = ctx.createLinearGradient(0, 0, 1080, 1080);
     grad.addColorStop(0, '#1a3a7a'); grad.addColorStop(1, '#0a84ff');
@@ -1794,7 +1795,7 @@ async function generateInstagramImage(type) {
     ctx.fillText(`Maya's Morning Brief · ${dateStr}`, 540, 1045);
 
   } else if (type === 'evening-quote') {
-    const eq = eveningQuotes[doy % eveningQuotes.length];
+    const eq = eveningQuotes[getDailyIndex(eveningQuotes.length)];
     const grad = ctx.createLinearGradient(0, 0, 1080, 1080);
     grad.addColorStop(0, '#0f0f1e'); grad.addColorStop(1, '#1a1035');
     ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1080);
@@ -2171,8 +2172,7 @@ const photoCurated = [
 ];
 
 async function loadPhotos() {
-  const doy = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0))/86400000);
-  // 3 verschiedene Kategorien heute
+  const doy = getDailyIndex(999); // absoluterTagesindex → wechselt täglich
   const cats = [0,1,2].map(i => photoCurated[(doy + i * 2) % photoCurated.length]);
 
   document.getElementById('photo-section').innerHTML = `
@@ -2681,9 +2681,7 @@ let _recipeOffset = 0; // user can browse recipes with arrows
 
 function renderRecipe(offset) {
   if (offset !== undefined) _recipeOffset = offset;
-  const now = new Date();
-  const doy = Math.floor((now - new Date(now.getFullYear(),0,0))/86400000);
-  const idx = ((doy + _recipeOffset) % recipes.length + recipes.length) % recipes.length;
+  const idx = ((getDailyIndex(recipes.length) + _recipeOffset) % recipes.length + recipes.length) % recipes.length;
   const r = recipes[idx];
   const total = recipes.length;
 
@@ -3043,9 +3041,8 @@ const groundingSteps = [
 ];
 
 function renderAidy() {
-  const doy = Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000);
-  const affirmation = affirmations[doy % affirmations.length];
-  const fact = panicFacts[doy % panicFacts.length];
+  const affirmation = affirmations[getDailyIndex(affirmations.length)];
+  const fact = panicFacts[getDailyIndex(panicFacts.length)];
 
   document.getElementById('aidy-content').innerHTML = `
 
