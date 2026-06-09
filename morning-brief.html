@@ -32,8 +32,7 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100%;
-      /* Dynamic Island / notch safe area */
-      padding-top: max(env(safe-area-inset-top), 54px);
+      padding-top: 0;
       padding-bottom: calc(env(safe-area-inset-bottom) + 68px);
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
@@ -74,12 +73,18 @@
     .page { display: none; }
     .page.active { display: block; }
 
-    /* ── Header ── */
+    /* ── Header (sticky) ── */
     .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 90;
       background: linear-gradient(160deg, #fff8ec 0%, #fffdf5 60%, #f0f8ff 100%);
       padding: 14px 14px 16px;
+      padding-top: max(env(safe-area-inset-top), 14px);
       text-align: center;
       border-bottom: 0.5px solid var(--border);
+      backdrop-filter: saturate(180%) blur(10px);
+      -webkit-backdrop-filter: saturate(180%) blur(10px);
     }
     .header-btn-row { display: none; } /* removed global buttons */
     /* pull-to-refresh indicator */
@@ -148,6 +153,7 @@
 
     /* ── Cards ── */
     .content { padding: 12px 12px 0; max-width: 430px; margin: 0 auto; }
+    .header-spacer { height: 0; }
     .card {
       background: var(--card); border-radius: var(--radius);
       box-shadow: var(--shadow); padding: 15px;
@@ -430,6 +436,7 @@
     <div id="offline-badge" class="offline-badge">📴 Offline — letzte Daten werden angezeigt</div>
   </div>
 
+  <div id="header-spacer" style="height:0px"></div>
   <div class="content">
     <div id="holiday-section"></div>
     <div id="birthday-section"></div>
@@ -1346,14 +1353,126 @@ function renderSummary() {
 }
 
 // ═══════════════════════════════════════════════════════
-// SHARE
+// SHARE — Screenshot als Bild teilen
 // ═══════════════════════════════════════════════════════
+
+let _html2canvasLoaded = false;
+async function loadHtml2Canvas() {
+  if (_html2canvasLoaded) return;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload = () => { _html2canvasLoaded = true; res(); };
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function captureCardAsBlob(cardId) {
+  await loadHtml2Canvas();
+  const el = document.getElementById(cardId)?.querySelector('.card') ||
+             document.getElementById(cardId);
+  if (!el) return null;
+  const canvas = await html2canvas(el, {
+    scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false,
+  });
+  return new Promise(res => canvas.toBlob(res, 'image/png'));
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:9999;white-space:nowrap;';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+async function shareCard(cardId, emoji, title) {
+  haptic('medium');
+  const btn = event?.target?.closest('.share-btn');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  try {
+    const blob = await captureCardAsBlob(cardId);
+    if (btn) { btn.textContent = '⎙ Teilen'; btn.disabled = false; }
+    if (blob && navigator.share && navigator.canShare?.({ files: [new File([blob], 'brief.png', {type:'image/png'})] })) {
+      await navigator.share({ title: `${emoji} ${title} — Maya's Morning Brief`, files: [new File([blob], 'morning-brief.png', { type: 'image/png' })] });
+    } else if (blob) {
+      showImageShareSheet(blob, emoji, title);
+    } else {
+      shareText(`${emoji} ${title}\n— Maya's Morning Brief 🌅`, title);
+    }
+  } catch(e) {
+    if (btn) { btn.textContent = '⎙ Teilen'; btn.disabled = false; }
+    if (e.name !== 'AbortError') shareText(`${emoji} ${title}\n— Maya's Morning Brief 🌅`, title);
+  }
+}
+
+function showImageShareSheet(blob, emoji, title) {
+  document.getElementById('custom-share-sheet')?.remove();
+  const imgUrl = URL.createObjectURL(blob);
+  const file = new File([blob], 'morning-brief.png', { type: 'image/png' });
+  const sheet = document.createElement('div');
+  sheet.id = 'custom-share-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.5);';
+  sheet.innerHTML = `
+    <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom)+16px);">
+      <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px;"></div>
+      <img src="${imgUrl}" style="width:100%;border-radius:12px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+        <button id="ss-native" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:#007aff;display:flex;align-items:center;justify-content:center;font-size:26px;">📤</div>
+          <span style="font-size:11px;color:#333;font-weight:500;">Teilen</span>
+        </button>
+        <button id="ss-download" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:#34c759;display:flex;align-items:center;justify-content:center;font-size:26px;">💾</div>
+          <span style="font-size:11px;color:#333;font-weight:500;">Speichern</span>
+        </button>
+        <button id="ss-instagram" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px;">📸</div>
+          <span style="font-size:11px;color:#333;font-weight:500;">Instagram</span>
+        </button>
+        <button id="ss-whatsapp" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:#25d366;display:flex;align-items:center;justify-content:center;font-size:26px;">💬</div>
+          <span style="font-size:11px;color:#333;font-weight:500;">WhatsApp</span>
+        </button>
+      </div>
+      <button id="ss-cancel" style="width:100%;background:#f2f2f7;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;color:#333;cursor:pointer;">Abbrechen</button>
+    </div>`;
+  document.body.appendChild(sheet);
+  sheet.addEventListener('click', e => { if(e.target===sheet){sheet.remove();URL.revokeObjectURL(imgUrl);}});
+  document.getElementById('ss-native').onclick = async () => {
+    try { await navigator.share({ title:`${emoji} ${title}`, files:[file] }); } catch {}
+    sheet.remove(); URL.revokeObjectURL(imgUrl);
+  };
+  document.getElementById('ss-download').onclick = () => {
+    const a=document.createElement('a'); a.href=imgUrl; a.download='morning-brief.png'; a.click();
+    showToast('💾 Bild gespeichert!'); sheet.remove();
+  };
+  document.getElementById('ss-instagram').onclick = async () => {
+    sheet.remove();
+    try { await navigator.share({ files:[file] }); } catch {
+      const a=document.createElement('a'); a.href=imgUrl; a.download='morning-brief.png'; a.click();
+      setTimeout(()=>{window.location.href='instagram://';},500);
+      showToast('📸 Bild gespeichert → Instagram öffnen');
+    }
+    URL.revokeObjectURL(imgUrl);
+  };
+  document.getElementById('ss-whatsapp').onclick = async () => {
+    sheet.remove();
+    try { await navigator.share({ files:[file], title:`${emoji} ${title}` }); } catch {
+      window.open(`https://wa.me/?text=${encodeURIComponent(`${emoji} ${title} — Maya's Morning Brief 🌅`)}`, '_blank');
+    }
+    URL.revokeObjectURL(imgUrl);
+  };
+  document.getElementById('ss-cancel').onclick = () => { sheet.remove(); URL.revokeObjectURL(imgUrl); };
+}
+
 function shareText(text, title) {
   haptic('medium');
   if (navigator.share) {
-    navigator.share({ title: title || "Maya's Morning Brief", text });
+    navigator.share({ title: title || "Maya's Morning Brief", text }).catch(()=>{});
   } else {
-    navigator.clipboard.writeText(text).then(() => alert('📋 In Zwischenablage kopiert!'));
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Kopiert!'));
   }
 }
 
@@ -1362,102 +1481,16 @@ function shareAll() {
   const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
   const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
   const dateStr = `${days[now.getDay()]}, ${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()}`;
-
   let text = `✨ Maya's Morning Brief — ${dateStr}\n\n`;
-
-  // Weather
   const wDesc = document.querySelector('#weather-section .weather-desc');
   const wTemp = document.querySelector('#weather-section .weather-temp-big');
   if (wDesc && wTemp) text += `🌡️ Wetter: ${wTemp.textContent} — ${wDesc.textContent}\n\n`;
-
-  // News
   const newsItems = document.querySelectorAll('#news-section .news-text');
-  if (newsItems.length) {
-    text += `📰 Breaking News:\n`;
-    newsItems.forEach((el, i) => { text += `${i+1}. ${el.textContent}\n`; });
-    text += '\n';
-  }
-
-  // War
-  const warItems = document.querySelectorAll('#war-section .news-text');
-  if (warItems.length) {
-    text += `🔴 Israel · USA · Iran:\n`;
-    warItems.forEach((el, i) => { text += `${i+1}. ${el.textContent}\n`; });
-    text += '\n';
-  }
-
-  // Quote
+  if (newsItems.length) { text += `📰 Breaking News:\n`; newsItems.forEach((el,i)=>{text+=`${i+1}. ${el.textContent}\n`;}); text+='\n'; }
   const quote = document.querySelector('#motivation-section .motivation-quote');
-  const trans = document.querySelector('#motivation-section .motivation-translation');
-  if (quote) text += `💙 Quote of the Day:\n${quote.textContent}\n${trans ? trans.textContent : ''}\n\n`;
-
-  // History
-  const hist = document.querySelector('#history-section .history-text');
-  const histY = document.querySelector('#history-section .history-year');
-  if (hist) text += `🏛️ This Day in History (${histY?.textContent}):\n${hist.textContent}\n\n`;
-
-  // Word
-  const word = document.querySelector('#word-section .word-main');
-  const wordDef = document.querySelector('#word-section .word-def');
-  if (word) text += `📖 Word of the Day: ${word.textContent} — ${wordDef?.textContent}\n\n`;
-
-  text += `— Gesendet von Maya's Morning Brief 🌅`;
+  if (quote) text += `💙 "${quote.textContent}"\n\n`;
+  text += `— Maya's Morning Brief 🌅`;
   shareText(text, `Maya's Morning Brief — ${dateStr}`);
-}
-
-function shareCard(cardId, emoji, title) {
-  haptic();
-  let text = `${emoji} ${title}\n`;
-  const card = document.getElementById(cardId);
-  if (!card) return;
-
-  if (cardId === 'news-section') {
-    card.querySelectorAll('.news-item').forEach((el, i) => {
-      const t = el.querySelector('.news-text')?.textContent;
-      const s = el.querySelector('.news-source')?.textContent;
-      if (t) text += `${i+1}. ${t}\n   ${s||''}\n`;
-    });
-  } else if (cardId === 'war-section') {
-    card.querySelectorAll('.news-item').forEach((el, i) => {
-      const t = el.querySelector('.news-text')?.textContent;
-      if (t) text += `${i+1}. ${t}\n`;
-    });
-  } else if (cardId === 'weather-section') {
-    const temp = card.querySelector('.weather-temp-big')?.textContent;
-    const desc = card.querySelector('.weather-desc')?.textContent;
-    const feels = card.querySelector('.weather-feels')?.textContent;
-    const loc = card.querySelector('.weather-location')?.textContent;
-    text += `${loc||''}\n${temp} — ${desc}\n${feels}\n`;
-    card.querySelectorAll('.w-item').forEach(el => {
-      const lbl = el.querySelector('.w-item-label')?.textContent;
-      const val = el.querySelector('.w-item-val')?.textContent;
-      if (lbl && val) text += `${lbl}: ${val}\n`;
-    });
-  } else if (cardId === 'motivation-section') {
-    const q = card.querySelector('.motivation-quote')?.textContent;
-    const d = card.querySelector('.motivation-translation')?.textContent;
-    const a = card.querySelector('.motivation-author')?.textContent;
-    if (q) text += `${q}\n`;
-    if (d) text += `${d}\n`;
-    if (a) text += `${a}\n`;
-  } else if (cardId === 'history-section') {
-    const y = card.querySelector('.history-year')?.textContent;
-    const t = card.querySelector('.history-text')?.textContent;
-    const ago = card.querySelector('.history-ago')?.textContent;
-    if (y && t) text += `${y}: ${t}\n${ago||''}\n`;
-  } else if (cardId === 'word-section') {
-    const w = card.querySelector('.word-main')?.textContent;
-    const ph = card.querySelector('.word-phonetic')?.textContent;
-    const def = card.querySelector('.word-def')?.textContent;
-    const ex = card.querySelector('.word-example')?.textContent;
-    const de = card.querySelector('.word-de')?.textContent;
-    text += `${w} ${ph}\n${def}\n${ex||''}\n${de||''}\n`;
-  } else {
-    // fallback: all text nodes
-    text += card.innerText.replace(/\n{3,}/g, '\n\n').trim();
-  }
-  text += '\n— Maya\'s Morning Brief 🌅';
-  shareText(text, title);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2054,11 +2087,21 @@ function msUntilNext() {
 }
 function scheduleNext(){setTimeout(()=>{loadAll(true);scheduleNext();},msUntilNext());}
 
+function adjustHeaderSpacer() {
+  const header = document.querySelector('#page-today .header');
+  const spacer = document.getElementById('header-spacer');
+  if (header && spacer) spacer.style.height = header.offsetHeight + 'px';
+}
+
 // ═══════════════════════════════════════════════════════
 // MAIN
 // ═══════════════════════════════════════════════════════
 function loadAll(isScheduled=false) {
   updateGreeting();
+  requestAnimationFrame(() => {
+    adjustHeaderSpacer();
+    window.addEventListener('resize', adjustHeaderSpacer);
+  });
   renderHoliday();
   renderBirthday();
   renderSteps();
