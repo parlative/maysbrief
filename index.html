@@ -280,7 +280,7 @@
     .motivation-author { font-size: 13px; color: #4a7acc; margin-top: 9px; font-weight: 600; }
 
     /* ── Evening Summary page ── */
-    .summary-header { background: linear-gradient(160deg,#1a1a2e,#16213e,#0f3460); padding: 36px 20px 24px; text-align: center; position: relative; }
+    .summary-header { background: linear-gradient(160deg,#1a1a2e,#16213e,#0f3460); padding: 36px 20px 24px; padding-top: max(env(safe-area-inset-top), 48px); text-align: center; position: relative; }
     .summary-title { font-size: 26px; font-weight: 700; color: #fff; }
     .summary-sub { font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 6px; }
     .summary-stars { font-size: 20px; margin-top: 8px; letter-spacing: 4px; }
@@ -511,7 +511,7 @@
 
 <!-- ═══ PAGE 2: EVENING SUMMARY ═══ -->
 <div id="page-evening" class="page">
-  <div class="summary-header" style="position:sticky;top:0;z-index:90;">
+  <div class="summary-header" style="position:sticky;top:0;z-index:90;padding-top:max(env(safe-area-inset-top),48px);">
     <div class="summary-stars">⭐ ✨ 🌙</div>
     <div class="summary-title">Evening Summary</div>
     <div id="summary-date" class="summary-sub"></div>
@@ -536,7 +536,7 @@
 
 <!-- ═══ PAGE 3: AIDY ═══ -->
 <div id="page-aidy" class="page">
-  <div class="summary-header" style="position:sticky;top:0;z-index:90;background:linear-gradient(160deg,#1a1035,#2d1b69,#1a1035);">
+  <div class="summary-header" style="position:sticky;top:0;z-index:90;background:linear-gradient(160deg,#1a1035,#2d1b69,#1a1035);padding-top:max(env(safe-area-inset-top),48px);">
     <div class="summary-stars" style="font-size:24px;letter-spacing:6px;">🫶 🌸 💜</div>
     <div class="summary-title" style="font-size:22px;">Aidy</div>
     <div class="summary-sub" style="color:rgba(255,255,255,0.7);font-size:13px;">Du bist sicher. Du bist stark. Das geht vorbei.</div>
