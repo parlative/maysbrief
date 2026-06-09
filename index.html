@@ -620,16 +620,17 @@ async function subscribePush(reg) {
 
 async function requestPushPermission() {
   if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-    showToast('❌ Push nicht unterstützt');
+    document.getElementById('push-banner').style.display = 'none';
     return;
   }
   const perm = await Notification.requestPermission();
+  document.getElementById('push-banner').style.display = 'none';
   if (perm === 'granted') {
     const reg = await navigator.serviceWorker.ready;
     await subscribePush(reg);
     showToast('🔔 Benachrichtigungen aktiviert!');
   } else {
-    showToast('❌ Benachrichtigungen abgelehnt');
+    showToast('Benachrichtigungen können in Einstellungen → Safari → Mitteilungen aktiviert werden.');
   }
 }
 
@@ -658,12 +659,17 @@ window.addEventListener('online', updateOfflineStatus);
 window.addEventListener('offline', updateOfflineStatus);
 updateOfflineStatus();
 
-// Push-Banner anzeigen wenn noch keine Permission
+// Push-Banner: nur zeigen wenn noch nie gefragt (default), sonst sofort weg
 function updatePushBanner() {
   const banner = document.getElementById('push-banner');
   if (!banner) return;
+  // Verstecken wenn: bereits granted, bereits denied, oder kein Support
   if ('Notification' in window && Notification.permission === 'default' && 'serviceWorker' in navigator) {
+    // Nur einmal pro Session zeigen — nach 8 Sekunden auch auto-weg
     banner.style.display = 'block';
+    setTimeout(() => {
+      if (Notification.permission !== 'default') banner.style.display = 'none';
+    }, 8000);
   } else {
     banner.style.display = 'none';
   }
@@ -1135,7 +1141,16 @@ async function translateToDE(text) {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|de`;
     const data = await fetch(url, {signal: AbortSignal.timeout(5000)}).then(r => r.json());
     const t = data?.responseData?.translatedText;
-    if (t && t !== text && !t.toLowerCase().includes('please select')) return t;
+    // MyMemory gibt bei Rate-Limit eine Fehlermeldung zurück — filtern
+    if (!t) return text;
+    const tLow = t.toLowerCase();
+    if (tLow.includes('mymemory warning') ||
+        tLow.includes('you used all avail') ||
+        tLow.includes('please select') ||
+        tLow.includes('visit https://') ||
+        tLow.includes('to translate more') ||
+        tLow.includes('next available in')) return text; // Originaltext zurückgeben
+    if (t !== text) return t;
   } catch {}
   return text;
 }
@@ -2195,7 +2210,7 @@ async function loadPhotos() {
       <div class="photo-item" onclick="openLightbox('${srcLarge}','${cat.tag} — ${p.cap}')">
         <img src="${src}" alt="${p.cap}"
           style="width:160px;height:160px;object-fit:cover;display:block;border-radius:12px"
-          loading="lazy">
+          loading="eager">
         <div class="photo-tag">${cat.tag}</div>
         <div class="photo-caption">${p.cap}</div>
       </div>`;
