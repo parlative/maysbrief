@@ -964,82 +964,45 @@ function shareWeek() {
 // NEWS
 // ═══════════════════════════════════════════════════════
 
-// Fetch RSS via multiple CORS proxies, return parsed items array or null
-async function fetchRSS(feedUrl, count = 10) {
-  const proxies = [
-    url => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=${count}&api_key=&_=${Date.now()}`,
-    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&_=${Date.now()}`,
-    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  ];
-
-  // Try rss2json first (returns JSON directly)
-  try {
-    const data = await fetch(proxies[0](feedUrl), {signal: AbortSignal.timeout(7000)}).then(r=>r.json());
-    if (data.items && data.items.length) return data.items.slice(0, count);
-  } catch {}
-
-  // Try raw XML via allorigins
-  try {
-    const res = await fetch(proxies[1](feedUrl), {signal: AbortSignal.timeout(7000)}).then(r=>r.json());
-    const xml = res.contents;
-    if (xml) return parseRSSXML(xml, count);
-  } catch {}
-
-  // Try corsproxy.io — raw XML
-  try {
-    const xml = await fetch(proxies[2](feedUrl), {signal: AbortSignal.timeout(7000)}).then(r=>r.text());
-    if (xml) return parseRSSXML(xml, count);
-  } catch {}
-
-  return null;
-}
-
-function parseRSSXML(xml, count = 10) {
-  try {
-    const doc = new DOMParser().parseFromString(xml, 'text/xml');
-    const items = Array.from(doc.querySelectorAll('item')).slice(0, count);
-    return items.map(el => ({
-      title: el.querySelector('title')?.textContent?.trim() || '',
-      pubDate: el.querySelector('pubDate')?.textContent || new Date().toISOString(),
-      link: el.querySelector('link')?.textContent || '',
-      description: el.querySelector('description')?.textContent || '',
-    })).filter(x => x.title);
-  } catch { return null; }
-}
-
-// Translate English text to German via MyMemory (free, no key needed)
-async function translateToDE(text) {
-  try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|de`;
-    const data = await fetch(url, {signal: AbortSignal.timeout(4000)}).then(r => r.json());
-    const t = data?.responseData?.translatedText;
-    if (t && t !== text && !t.toLowerCase().includes('please select')) return t;
-  } catch {}
-  return text; // fallback: original
-}
-
-async function fetchViaRss2json(feedUrl, src, count = 5) {
-  const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=${count}&_=${Date.now()}`;
+// RSS via rss2json OHNE count-Parameter (kein API-Key nötig), max 10 items
+async function fetchRSS(feedUrl, src) {
+  // rss2json ohne count → funktioniert kostenlos
+  const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&_=${Date.now()}`;
   const data = await fetch(url, {signal: AbortSignal.timeout(10000)}).then(r => r.json());
   if (data.status === 'ok' && data.items?.length) {
-    return data.items.map(i => ({ title: i.title, pubDate: i.pubDate, src }));
+    return data.items.slice(0, 10).map(i => ({
+      title: i.title?.trim() || '',
+      pubDate: i.pubDate || new Date().toISOString(),
+      src
+    })).filter(i => i.title);
   }
   return null;
 }
 
+// Englischen Text ins Deutsche übersetzen via MyMemory (kostenlos)
+async function translateToDE(text) {
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|de`;
+    const data = await fetch(url, {signal: AbortSignal.timeout(5000)}).then(r => r.json());
+    const t = data?.responseData?.translatedText;
+    if (t && t !== text && !t.toLowerCase().includes('please select')) return t;
+  } catch {}
+  return text;
+}
+
 async function loadNews() {
+  // Nur funktionierende deutsche Feeds (getestet)
   const feeds = [
     { url: 'https://www.n-tv.de/rss', src: 'n-tv.de' },
-    { url: 'https://feeds.tagesschau.de/feeds/tagesschau.xml', src: 'tagesschau.de' },
     { url: 'https://www.spiegel.de/schlagzeilen/tops/index.rss', src: 'spiegel.de' },
-    { url: 'https://www.focus.de/nachrichtenueberblick/feed_rss.xml', src: 'focus.de' },
   ];
 
   for (const feed of feeds) {
     try {
-      const items = await fetchViaRss2json(feed.url, feed.src, 5);
+      const items = await fetchRSS(feed.url, feed.src);
       if (!items || !items.length) continue;
-      const html = items.map((item, i) => `
+      const top5 = items.slice(0, 5);
+      const html = top5.map((item, i) => `
         <div class="news-item">
           <div class="news-num">${i+1}</div>
           <div>
@@ -1062,13 +1025,12 @@ async function loadNews() {
 }
 
 async function loadWarNews() {
-  // Prefer German feeds; English feeds will be translated
+  // Getestete funktionierende Feeds; englische werden übersetzt
   const feeds = [
-    { url: 'https://feeds.tagesschau.de/feeds/tagesschau.xml', src: 'tagesschau.de', lang: 'de' },
-    { url: 'https://www.n-tv.de/rss', src: 'n-tv.de', lang: 'de' },
-    { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', src: 'bbc.com', lang: 'en' },
-    { url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', src: 'nytimes.com', lang: 'en' },
-    { url: 'http://rss.cnn.com/rss/edition_world.rss', src: 'cnn.com', lang: 'en' },
+    { url: 'https://www.n-tv.de/rss',                                 src: 'n-tv.de',      lang: 'de' },
+    { url: 'https://www.spiegel.de/schlagzeilen/tops/index.rss',      src: 'spiegel.de',   lang: 'de' },
+    { url: 'https://feeds.bbci.co.uk/news/world/rss.xml',             src: 'bbc.com',       lang: 'en' },
+    { url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',  src: 'nytimes.com',   lang: 'en' },
   ];
   const kw = [
     'israel','iran','hamas','hezbollah','gaza','west bank','westjordanland',
@@ -1084,14 +1046,15 @@ async function loadWarNews() {
 
   await Promise.allSettled(feeds.map(async feed => {
     try {
-      const items = await fetchViaRss2json(feed.url, feed.src, 15);
+      const items = await fetchRSS(feed.url, feed.src);
       if (!items) return;
       const matched = items
-        .filter(x => kw.some(k => (x.title + ' ' + (x.description||'')).toLowerCase().includes(k)))
-        .slice(0, 3)
+        .filter(x => kw.some(k => (x.title).toLowerCase().includes(k)))
+        .slice(0, 4)
         .map(x => ({ ...x, _src: feed.src, _lang: feed.lang }));
-      if (!matched.length && (feed.src === 'tagesschau.de' || feed.src === 'n-tv.de')) {
-        allItems.push(...items.slice(0,2).map(x => ({ ...x, _src: feed.src, _lang: feed.lang })));
+      // Fallback: bei deutschen Feeds trotzdem erste Items nehmen
+      if (!matched.length && feed.lang === 'de') {
+        allItems.push(...items.slice(0, 2).map(x => ({ ...x, _src: feed.src, _lang: feed.lang })));
       } else {
         allItems.push(...matched);
       }
@@ -1113,7 +1076,7 @@ async function loadWarNews() {
     return;
   }
 
-  // Translate English headlines to German
+  // Englische Schlagzeilen auf Deutsch übersetzen
   const translated = await Promise.all(deduped.map(async item => ({
     ...item,
     title: item._lang === 'en' ? await translateToDE(item.title) : item.title
