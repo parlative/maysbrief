@@ -4,8 +4,8 @@
   "description": "Täglicher Morgenüberblick für Maya",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ac9265",
-  "theme_color": "#ac9265",
+  "background_color": "#ffffff",
+  "theme_color": "#d2b3f8",
   "orientation": "portrait",
   "icons": [
     {
