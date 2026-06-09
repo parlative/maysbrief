@@ -409,6 +409,46 @@
     .evening-locked-icon { font-size: 48px; margin-bottom: 12px; }
     .evening-locked-text { font-size: 16px; color: var(--subtext); line-height: 1.6; }
     .evening-locked-time { font-size: 28px; font-weight: 800; color: var(--text); margin: 8px 0; }
+
+    /* ── Aidy Page ── */
+    .aidy-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px; margin-bottom: 10px; border: 1px solid var(--border); animation: fadeSlideUp 0.4s ease both; }
+    .aidy-card.purple { background: linear-gradient(135deg,#f5f0ff,#ede8ff); border-color:#c4b5fd; }
+    .aidy-card.green  { background: linear-gradient(135deg,#f0fff4,#e6ffee); border-color:#86efac; }
+    .aidy-card.blue   { background: linear-gradient(135deg,#eff6ff,#dbeafe); border-color:#93c5fd; }
+    .aidy-card.pink   { background: linear-gradient(135deg,#fff0f5,#fce4ec); border-color:#ffb3c6; }
+    .aidy-card.amber  { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color:#fcd34d; }
+    .aidy-card.teal   { background: linear-gradient(135deg,#f0fdfa,#ccfbf1); border-color:#5eead4; }
+    .aidy-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .aidy-sub   { font-size: 13px; color: var(--subtext); line-height: 1.5; margin-bottom: 12px; }
+
+    /* Breath animation */
+    @keyframes breatheIn  { 0%{transform:scale(0.7);opacity:0.5} 100%{transform:scale(1.15);opacity:1} }
+    @keyframes breatheOut { 0%{transform:scale(1.15);opacity:1} 100%{transform:scale(0.7);opacity:0.5} }
+    @keyframes breatheHold{ 0%,100%{transform:scale(1.15)} }
+    .breath-circle { width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed); display:flex;align-items:center;justify-content:center;margin:0 auto 16px;cursor:pointer;transition:transform 0.3s; }
+    .breath-circle.in   { animation: breatheIn  4s ease-in-out forwards; }
+    .breath-circle.hold { animation: breatheHold 7s ease forwards; }
+    .breath-circle.out  { animation: breatheOut  8s ease-in-out forwards; }
+    .breath-text { color:#fff;font-size:15px;font-weight:700;text-align:center;line-height:1.3; }
+
+    /* Grounding steps */
+    .grounding-step { display:flex;align-items:flex-start;gap:12px;padding:10px;background:rgba(255,255,255,0.6);border-radius:13px;margin-bottom:8px;cursor:pointer;transition:background 0.2s; }
+    .grounding-step.done { background:rgba(22,163,74,0.1);border:1px solid #86efac; }
+    .grounding-num { width:32px;height:32px;border-radius:50%;background:#0a84ff;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .grounding-step.done .grounding-num { background:#16a34a; }
+
+    /* Reflection textarea */
+    .reflect-area { width:100%;background:rgba(255,255,255,0.7);border:1.5px solid #c4b5fd;border-radius:13px;padding:10px 12px;font-size:14px;color:var(--text);outline:none;resize:none;font-family:inherit;line-height:1.5; }
+    .reflect-area:focus { border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,0.12); }
+    .aidy-btn { background:#7c3aed;color:#fff;border:none;border-radius:13px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:transform 0.1s,opacity 0.15s;width:100%;margin-top:8px; }
+    .aidy-btn:active { transform:scale(0.97);opacity:0.85; }
+    .aidy-btn.secondary { background:#f0e7ff;color:#5b21b6;border:1.5px solid #c4b5fd; }
+    .panic-fact { background:rgba(255,255,255,0.6);border-radius:13px;padding:12px 14px;margin-bottom:8px;font-size:14px;color:#3730a3;font-weight:500;line-height:1.5;border-left:4px solid #818cf8; }
+    .affirmation { font-size:20px;font-weight:700;color:#5b21b6;text-align:center;line-height:1.4;padding:16px 8px; }
+    .sleep-rec { display:flex;gap:12px;align-items:center;flex-wrap:wrap; }
+    .sleep-pill { flex:1;min-width:80px;background:rgba(255,255,255,0.7);border-radius:13px;padding:10px 12px;text-align:center;border:1px solid #bde0fe; }
+    .sleep-pill-label { font-size:10px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px; }
+    .sleep-pill-val { font-size:17px;font-weight:700;color:var(--text); }
   </style>
 </head>
 <body>
@@ -486,6 +526,18 @@
   <div id="lightbox-caption" class="lightbox-caption"></div>
 </div>
 
+<!-- ═══ PAGE 3: AIDY ═══ -->
+<div id="page-aidy" class="page">
+  <div class="summary-header" style="position:sticky;top:0;z-index:90;background:linear-gradient(160deg,#1a1035,#2d1b69,#1a1035);">
+    <div class="summary-stars" style="font-size:24px;letter-spacing:6px;">🫶 🌸 💜</div>
+    <div class="summary-title" style="font-size:22px;">Aidy</div>
+    <div class="summary-sub" style="color:rgba(255,255,255,0.7);font-size:13px;">Du bist sicher. Du bist stark. Das geht vorbei.</div>
+  </div>
+  <div style="padding:12px 12px 0;max-width:430px;margin:0 auto;" id="aidy-content">
+    <!-- filled by renderAidy() -->
+  </div>
+</div>
+
 <!-- ═══ TAB BAR ═══ -->
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-today" onclick="switchTab('today')">
@@ -495,6 +547,10 @@
   <button class="tab-btn" id="tab-evening" onclick="switchTab('evening')">
     <span class="tab-icon">🌙</span>
     <span class="tab-label">Abend</span>
+  </button>
+  <button class="tab-btn" id="tab-aidy" onclick="switchTab('aidy')">
+    <span class="tab-icon">🫶</span>
+    <span class="tab-label">Aidy</span>
   </button>
 </div>
 
@@ -517,16 +573,7 @@ function haptic(style = 'light') {
 }
 
 // ═══════════════════════════════════════════════════════
-// TABS
-// ═══════════════════════════════════════════════════════
-function switchTab(tab) {
-  haptic();
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + tab).classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  if (tab === 'evening') renderSummary();
-}
+// TABS — handled by full version below after Aidy is defined
 
 // ═══════════════════════════════════════════════════════
 // OFFLINE
@@ -1368,7 +1415,63 @@ function renderSummary() {
   const motEl=document.getElementById('motivation-section').querySelector('.motivation-quote');
   const motText=motEl?motEl.textContent:'"–"';
 
+  // Sleep recommendation
+  const sleepRecs = getSleepRecommendation();
+  const sleepHtml = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      ${sleepRecs.map(s=>`
+        <div style="flex:1;min-width:80px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:13px;padding:10px;text-align:center;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Aufwachen ${s.wake}</div>
+          <div style="font-size:17px;font-weight:800;color:#fff;">${s.sleepNow}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px;">${s.cycles}× 90min · ${s.hours}h</div>
+          <div style="font-size:11px;margin-top:4px;">${s.quality}</div>
+        </div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-top:8px;">Jetzt einschlafen für einen vollständigen Schlafzyklus</div>`;
+
+  // Evening Quote
+  const doy = Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
+  const eq = eveningQuotes[doy % eveningQuotes.length];
+
+  // Reflection
+  const savedReflect = getReflection();
+  const reflectionHtml = savedReflect ? `` : `
+    <div id="reflection-card">
+      <div class="aidy-title" style="margin-bottom:12px;">📔 Tagesreflexion</div>
+      <div style="font-size:12px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wie war dein Tag? (1–10)</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:13px;color:var(--subtext);">😰 1</span>
+        <input type="range" id="reflect-mood" min="1" max="10" value="7" style="flex:1;" oninput="document.getElementById('mood-val').textContent=this.value">
+        <span style="font-size:13px;color:var(--subtext);">10 🌟</span>
+        <span id="mood-val" style="font-size:16px;font-weight:800;color:#5b21b6;min-width:20px;">7</span>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">✅ Was war heute gut?</div>
+      <textarea id="reflect-good" class="reflect-area" rows="2" placeholder="z.B. gutes Gespräch, Sport gemacht, lecker gegessen..."></textarea>
+      <div style="font-size:12px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">💪 Was war schwierig?</div>
+      <textarea id="reflect-hard" class="reflect-area" rows="2" placeholder="Was hat dich heute herausgefordert?"></textarea>
+      <div style="font-size:12px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">🙏 Wofür bin ich dankbar?</div>
+      <textarea id="reflect-grateful" class="reflect-area" rows="2" placeholder="3 kleine oder große Dinge..."></textarea>
+      <button class="aidy-btn" style="margin-top:12px;" onclick="submitReflection()">💜 Reflexion speichern</button>
+    </div>`;
+
+  const reflectionCardClass = savedReflect ? 'summary-card' : 'summary-card';
+  const reflectionContent = savedReflect ? (() => {
+    const r = savedReflect;
+    const moodEmoji = ['😰','😟','😕','😐','🙂','😊','😄','🥰','🤩','🌟'][Math.min(r.mood-1,9)];
+    return `<div id="reflection-card">
+      <div style="text-align:center;margin-bottom:10px;"><span style="font-size:42px;">${moodEmoji}</span><div style="font-size:15px;font-weight:700;color:#5b21b6;margin-top:4px;">Stimmung: ${r.mood}/10</div></div>
+      ${r.good?`<div style="background:rgba(22,163,74,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #86efac;"><div style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Was gut war</div><div style="font-size:14px;">${r.good}</div></div>`:''}
+      ${r.hard?`<div style="background:rgba(255,159,10,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #fcd34d;"><div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Was schwierig war</div><div style="font-size:14px;">${r.hard}</div></div>`:''}
+      ${r.grateful?`<div style="background:rgba(124,58,237,0.08);border-radius:12px;padding:10px 12px;border-left:4px solid #c4b5fd;"><div style="font-size:11px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Dankbarkeit</div><div style="font-size:14px;">${r.grateful}</div></div>`:''}
+      <button class="aidy-btn secondary" style="margin-top:10px;" onclick="clearReflection()">✏️ Neu schreiben</button>
+    </div>`;
+  })() : reflectionHtml;
+
   document.getElementById('summary-content').innerHTML=`
+    <div class="summary-card" style="animation-delay:0.03s;background:linear-gradient(135deg,#0f0f1e,#1a1035);border-color:#2d1b69;">
+      <div class="summary-card-title" style="color:rgba(255,255,255,0.7);">😴 Schlafempfehlung</div>
+      ${sleepHtml}
+    </div>
     <div class="summary-card" style="animation-delay:0.05s">
       <div class="summary-card-title">🌡️ Today's Weather</div>
       ${weatherTodayHtml}
@@ -1382,16 +1485,22 @@ function renderSummary() {
       ${stepsHtml}
     </div>
     <div class="summary-card" style="animation-delay:0.13s;border-left:4px solid #f59e0b;">
-      <div class="summary-card-title">☑️ Open Tasks Today (${todos.length})</div>
+      <div class="summary-card-title">☑️ Open Tasks (${todos.length})</div>
       ${openTodosHtml}
     </div>
     <div class="summary-card" style="animation-delay:0.15s">
       <div class="summary-card-title">📰 Top News</div>
       ${newsHtml}
     </div>
-    <div class="summary-card motivation-card" style="animation-delay:0.2s">
-      <div class="summary-card-title">💙 Quote of the Day</div>
-      <div class="motivation-quote">${motText}</div>
+    <div class="summary-card" style="animation-delay:0.17s;background:linear-gradient(135deg,#f5f0ff,#ede8ff);border-color:#c4b5fd;">
+      <div class="summary-card-title" style="color:#5b21b6;">📔 Tagesreflexion</div>
+      ${reflectionContent}
+    </div>
+    <div class="summary-card motivation-card" style="animation-delay:0.2s;background:linear-gradient(135deg,#1a1a2e,#16213e);border-color:#2d1b69;">
+      <div class="summary-card-title" style="color:rgba(255,255,255,0.7);">🌙 Quote of the Evening</div>
+      <div class="motivation-quote" style="color:#e0d7ff;font-style:italic;">"${eq.t}"</div>
+      ${eq.de?`<div class="motivation-translation" style="color:#a78bfa;">${eq.de}</div>`:''}
+      ${eq.a?`<div class="motivation-author" style="color:#818cf8;">— ${eq.a}</div>`:''}
     </div>`;
 }
 
@@ -2419,6 +2528,354 @@ async function refresh() {
   await new Promise(r=>setTimeout(r,1400));
   btn.classList.remove('loading');
   haptic('medium');
+}
+
+// ═══════════════════════════════════════════════════════
+// EVENING QUOTES (anders als Morning-Quotes)
+// ═══════════════════════════════════════════════════════
+const eveningQuotes = [
+  {t:"The day is done. You survived every moment of it.",de:"Der Tag ist vorbei. Du hast jeden Moment davon überlebt.",a:""},
+  {t:"Rest is not a reward — it's a requirement.",de:"Ruhe ist keine Belohnung — sie ist eine Notwendigkeit.",a:""},
+  {t:"You did enough today. You are enough.",de:"Du hast heute genug getan. Du bist genug.",a:""},
+  {t:"Stars can't shine without darkness.",de:"Sterne können ohne Dunkelheit nicht leuchten.",a:""},
+  {t:"Tonight, let it all go. Tomorrow is a fresh page.",de:"Lass heute Nacht alles los. Morgen ist eine neue Seite.",a:""},
+  {t:"Healing happens in the quiet.",de:"Heilung geschieht in der Stille.",a:""},
+  {t:"Every evening is a chance to put down what you were carrying.",de:"Jeder Abend ist eine Chance, das abzulegen, was du getragen hast.",a:""},
+  {t:"You cannot pour from an empty cup. Fill yours tonight.",de:"Du kannst aus einer leeren Tasse nicht schütten. Fülle deine heute Nacht.",a:""},
+  {t:"The most productive thing you can do tonight is sleep.",de:"Das Produktivste, was du heute Nacht tun kannst, ist schlafen.",a:"Matthew Walker"},
+  {t:"Peace is not found at the end of the day — it's practiced.",de:"Frieden findet man nicht am Ende des Tages — er wird geübt.",a:""},
+  {t:"Let the soft animal of your body love what it loves.",de:"Lass das sanfte Tier deines Körpers lieben, was es liebt.",a:"Mary Oliver"},
+  {t:"Gratitude turns what we have into enough.",de:"Dankbarkeit verwandelt das, was wir haben, in Genug.",a:""},
+  {t:"Night is the other half of life.",de:"Die Nacht ist die andere Hälfte des Lebens.",a:"Goethe"},
+  {t:"Even the darkest night will end, and the sun will rise.",de:"Selbst die dunkelste Nacht wird enden, und die Sonne wird aufgehen.",a:"Victor Hugo"},
+];
+
+// ═══════════════════════════════════════════════════════
+// SLEEP RECOMMENDATION
+// ═══════════════════════════════════════════════════════
+function getSleepRecommendation() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const totalMins = h * 60 + m;
+  const cycles = [
+    { wake: 6*60,   label: '06:00' },
+    { wake: 6*60+30,label: '06:30' },
+    { wake: 7*60,   label: '07:00' },
+    { wake: 7*60+30,label: '07:30' },
+  ];
+  const SLEEP_ONSET = 14; // mins to fall asleep
+  const CYCLE = 90;       // mins per sleep cycle
+  return cycles.map(c => {
+    let wakeMin = c.wake;
+    if (wakeMin <= totalMins) wakeMin += 24*60;
+    const available = wakeMin - totalMins - SLEEP_ONSET;
+    const full = Math.floor(available / CYCLE);
+    const rec = full >= 1 ? full : 1;
+    const sleepAt = new Date(now.getTime() + SLEEP_ONSET * 60000);
+    const wakeAt = new Date(now.getTime() + (SLEEP_ONSET + rec * CYCLE) * 60000);
+    const pad = n => String(n).padStart(2,'0');
+    return {
+      wake: c.label,
+      sleepNow: `${pad(sleepAt.getHours())}:${pad(sleepAt.getMinutes())}`,
+      cycles: rec,
+      hours: (rec * CYCLE / 60).toFixed(1),
+      quality: rec >= 5 ? '🟢 Optimal' : rec >= 4 ? '🟡 Gut' : rec >= 3 ? '🟠 Ok' : '🔴 Wenig',
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// TAGESREFLEXION
+// ═══════════════════════════════════════════════════════
+const REFLECT_KEY = 'maya_reflect_';
+function reflectKey() {
+  const n=new Date(); return `${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`;
+}
+function saveReflection(data) {
+  localStorage.setItem(REFLECT_KEY + reflectKey(), JSON.stringify(data));
+}
+function getReflection() {
+  const s = localStorage.getItem(REFLECT_KEY + reflectKey());
+  return s ? JSON.parse(s) : null;
+}
+
+function submitReflection() {
+  const good = document.getElementById('reflect-good')?.value?.trim();
+  const hard = document.getElementById('reflect-hard')?.value?.trim();
+  const grateful = document.getElementById('reflect-grateful')?.value?.trim();
+  const mood = document.getElementById('reflect-mood')?.value;
+  if (!good && !hard && !grateful) { showToast('Bitte füll mindestens ein Feld aus 🙏'); return; }
+  haptic('medium');
+  saveReflection({ good, hard, grateful, mood: parseInt(mood||5), ts: Date.now() });
+  renderReflectionResult();
+}
+
+function renderReflectionResult() {
+  const r = getReflection();
+  if (!r) return;
+  const moodEmoji = ['😰','😟','😕','😐','🙂','😊','😄','🥰','🤩','🌟'][Math.min(r.mood-1,9)];
+  const moodLabel = r.mood>=8?'Großartig':r.mood>=6?'Gut':r.mood>=4?'Ok':r.mood>=2?'Schwierig':'Sehr schwer';
+  const el = document.getElementById('reflection-card');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="aidy-title">📔 Deine Reflexion</div>
+    <div style="text-align:center;padding:12px 0;">
+      <div style="font-size:48px;">${moodEmoji}</div>
+      <div style="font-size:16px;font-weight:700;color:#5b21b6;margin-top:4px;">Stimmung: ${moodLabel} (${r.mood}/10)</div>
+    </div>
+    ${r.good?`<div style="background:rgba(22,163,74,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #86efac;"><div style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">✅ Was gut war</div><div style="font-size:14px;color:var(--text);">${r.good}</div></div>`:''}
+    ${r.hard?`<div style="background:rgba(255,159,10,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #fcd34d;"><div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💪 Was schwierig war</div><div style="font-size:14px;color:var(--text);">${r.hard}</div></div>`:''}
+    ${r.grateful?`<div style="background:rgba(124,58,237,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #c4b5fd;"><div style="font-size:11px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🙏 Dankbarkeit</div><div style="font-size:14px;color:var(--text);">${r.grateful}</div></div>`:''}
+    <button class="aidy-btn secondary" style="margin-top:8px;" onclick="clearReflection()">✏️ Neu schreiben</button>`;
+}
+
+function clearReflection() {
+  localStorage.removeItem(REFLECT_KEY + reflectKey());
+  renderSummary();
+}
+
+// ═══════════════════════════════════════════════════════
+// AIDY PAGE
+// ═══════════════════════════════════════════════════════
+let _breathPhase = 'idle', _breathTimer = null, _breathCount = 0;
+let _groundingDone = new Set();
+let _affirmIdx = 0;
+
+const panicFacts = [
+  "Eine Panikattacke ist unangenehm, aber nicht gefährlich. Sie kann dir nicht schaden.",
+  "Panikattacken erreichen ihr Maximum in ca. 10 Minuten und gehen dann von selbst vorbei.",
+  "Die körperlichen Symptome (Herzrasen, Atemnot) sind harmlose Stressreaktionen — kein Herzanfall.",
+  "Dein Körper kämpft für dich, nicht gegen dich. Die Angstreaktion will dich schützen.",
+  "Du hast jede Panikattacke bisher überlebt. Diese hier wirst du auch überleben.",
+  "Atemnot bei Angst entsteht durch zu schnelles Atmen — nicht durch zu wenig Luft.",
+  "Je mehr du gegen die Panik kämpfst, desto stärker wird sie. Akzeptanz hilft.",
+  "Millionen Menschen erleben Panikattacken. Du bist nicht allein damit.",
+];
+
+const affirmations = [
+  "Ich bin sicher. In diesem Moment bin ich okay.",
+  "Das ist nur Angst. Angst kann mir nicht schaden.",
+  "Ich atme ein — Ruhe kommt. Ich atme aus — Anspannung geht.",
+  "Ich habe das schon überstanden. Ich schaffe das wieder.",
+  "Mein Körper ist stark. Mein Geist ist stärker.",
+  "Diese Welle wird vergehen. Ich lass sie einfach durchrollen.",
+  "Ich bin mehr als meine Gedanken. Ich bin mehr als meine Angst.",
+  "Mit jedem Atemzug werde ich ruhiger.",
+  "Ich verdiene Frieden. Ich wähle jetzt Ruhe.",
+];
+
+const groundingSteps = [
+  { n:5, sense:'sehen 👀', prompt:'Nenne 5 Dinge, die du gerade siehst.' },
+  { n:4, sense:'hören 👂', prompt:'Nenne 4 Geräusche, die du gerade hörst.' },
+  { n:3, sense:'fühlen ✋', prompt:'Nenne 3 Dinge, die du gerade körperlich spürst.' },
+  { n:2, sense:'riechen 👃', prompt:'Nenne 2 Dinge, die du gerade riechst (oder dir vorstellen kannst).' },
+  { n:1, sense:'schmecken 👅', prompt:'Nenne 1 Ding, das du gerade schmeckst.' },
+];
+
+function renderAidy() {
+  const doy = Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000);
+  const affirmation = affirmations[doy % affirmations.length];
+  const fact = panicFacts[doy % panicFacts.length];
+
+  document.getElementById('aidy-content').innerHTML = `
+
+    <!-- SOS Banner -->
+    <div style="background:linear-gradient(135deg,#4c1d95,#7c3aed);border-radius:18px;padding:16px;margin-bottom:10px;text-align:center;animation:fadeSlideUp 0.3s ease;">
+      <div style="font-size:28px;margin-bottom:8px;">🆘</div>
+      <div style="color:#fff;font-size:17px;font-weight:700;margin-bottom:4px;">Panikattacke jetzt?</div>
+      <div style="color:rgba(255,255,255,0.8);font-size:13px;margin-bottom:12px;">Starte die geführte Atemübung — sofortige Wirkung</div>
+      <button onclick="startBreathing()" style="background:#fff;color:#5b21b6;border:none;border-radius:14px;padding:12px 28px;font-size:15px;font-weight:800;cursor:pointer;width:100%;">💜 Jetzt atmen</button>
+    </div>
+
+    <!-- Atemübung -->
+    <div class="aidy-card purple" id="breath-card" style="display:none;">
+      <div class="aidy-title">💜 4-7-8 Atemübung</div>
+      <div class="aidy-sub">Diese Technik beruhigt das Nervensystem in Minuten.</div>
+      <div id="breath-circle" class="breath-circle" onclick="startBreathing()">
+        <div class="breath-text" id="breath-label">Tippe<br>zum Start</div>
+      </div>
+      <div style="text-align:center;margin-bottom:12px;">
+        <div id="breath-phase-text" style="font-size:20px;font-weight:800;color:#5b21b6;">Bereit</div>
+        <div id="breath-count-text" style="font-size:13px;color:#818cf8;margin-top:2px;"></div>
+      </div>
+      <button class="aidy-btn secondary" onclick="stopBreathing()">✕ Stoppen</button>
+    </div>
+
+    <!-- 5-4-3-2-1 Grounding -->
+    <div class="aidy-card green">
+      <div class="aidy-title">🌿 5-4-3-2-1 Grounding</div>
+      <div class="aidy-sub">Bringt dich sofort in den gegenwärtigen Moment. Hake jeden Schritt ab.</div>
+      <div id="grounding-steps">
+        ${groundingSteps.map(s=>`
+          <div class="grounding-step" id="gs-${s.n}" onclick="toggleGrounding(${s.n})">
+            <div class="grounding-num">${s.n}</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--text);">${s.sense}</div>
+              <div style="font-size:12px;color:var(--subtext);margin-top:2px;">${s.prompt}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <button class="aidy-btn secondary" style="margin-top:4px;" onclick="resetGrounding()">↺ Neu starten</button>
+    </div>
+
+    <!-- Panik-Fakten -->
+    <div class="aidy-card blue">
+      <div class="aidy-title">💡 Das musst du jetzt wissen</div>
+      <div id="panic-fact-display" class="panic-fact">${fact}</div>
+      <button class="aidy-btn secondary" onclick="nextFact()">→ Nächster Fakt</button>
+    </div>
+
+    <!-- Affirmationen -->
+    <div class="aidy-card pink">
+      <div class="aidy-title">🌸 Sag das dir selbst</div>
+      <div id="affirmation-display" class="affirmation">"${affirmation}"</div>
+      <button class="aidy-btn" onclick="nextAffirmation()">Neue Affirmation ✨</button>
+    </div>
+
+    <!-- Körperscan -->
+    <div class="aidy-card teal">
+      <div class="aidy-title">🌊 Progressive Entspannung</div>
+      <div class="aidy-sub">Spanne jeden Körperbereich für 5 Sekunden an, dann loslassen.</div>
+      <div id="bodyscan-steps">
+        ${['Füße & Zehen 🦶','Waden & Unterschenkel 🦵','Oberschenkel & Gesäß','Bauch & Rücken','Hände & Arme 🤲','Schultern & Nacken 💪','Gesicht & Kiefer 😌'].map((area,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(94,234,212,0.3);cursor:pointer;" onclick="haptic();this.style.opacity=this.style.opacity=='0.4'?'1':'0.4';this.querySelector('.bs-check').style.display=this.style.opacity=='0.4'?'flex':'none'">
+            <div class="bs-check" style="display:none;width:22px;height:22px;border-radius:50%;background:#0d9488;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:13px;font-weight:800;">✓</div>
+            <div style="width:22px;height:22px;border-radius:50%;border:2px solid #5eead4;flex-shrink:0;"></div>
+            <span style="font-size:14px;font-weight:500;color:var(--text);">${area}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Kälte-Reset -->
+    <div class="aidy-card amber">
+      <div class="aidy-title">💧 Kälte-Reset</div>
+      <div class="aidy-sub">Kaltes Wasser aktiviert den Taucherreflex — das Nervensystem schaltet sofort um.</div>
+      <div style="background:rgba(255,255,255,0.6);border-radius:13px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:14px;font-weight:700;color:#78350f;margin-bottom:6px;">So geht's:</div>
+        <div style="font-size:13px;color:#92400e;line-height:1.6;">
+          1. Kaltes Wasser bereitstellen<br>
+          2. Tief einatmen<br>
+          3. Gesicht 30 Sek. ins kalte Wasser tauchen (oder Eiswürfel halten)<br>
+          4. Oder: Eiswürfel am Handgelenk / Nacken
+        </div>
+      </div>
+      <div style="font-size:12px;color:#b45309;text-align:center;">Wirkt innerhalb von 30 Sekunden · Medizinisch belegt</div>
+    </div>
+
+    <!-- Notfallkontakt -->
+    <div class="aidy-card" style="text-align:center;padding:18px;">
+      <div style="font-size:13px;color:var(--subtext);margin-bottom:8px;">Wenn du professionelle Hilfe brauchst</div>
+      <a href="tel:0800111 0 111" style="display:block;background:var(--accent4);color:#fff;border-radius:14px;padding:12px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:8px;">📞 Telefonseelsorge: 0800 111 0 111</a>
+      <div style="font-size:12px;color:var(--subtext);">Kostenlos · 24/7 · Anonym</div>
+    </div>
+  `;
+}
+
+function startBreathing() {
+  haptic('heavy');
+  document.getElementById('breath-card').style.display = 'block';
+  document.getElementById('breath-card').scrollIntoView({behavior:'smooth', block:'nearest'});
+  _breathCount = 0;
+  runBreathCycle();
+}
+
+function runBreathCycle() {
+  const circle = document.getElementById('breath-circle');
+  const label = document.getElementById('breath-label');
+  const phase = document.getElementById('breath-phase-text');
+  const count = document.getElementById('breath-count-text');
+  if (!circle) return;
+
+  _breathCount++;
+  count.textContent = `Runde ${_breathCount} von 4`;
+
+  // Einatmen — 4 Sek
+  circle.className = 'breath-circle in';
+  label.innerHTML = 'Ein<br>4 Sek';
+  phase.textContent = 'Einatmen...';
+  haptic();
+
+  _breathTimer = setTimeout(() => {
+    // Halten — 7 Sek
+    circle.className = 'breath-circle hold';
+    label.innerHTML = 'Halten<br>7 Sek';
+    phase.textContent = 'Halten...';
+    haptic();
+
+    _breathTimer = setTimeout(() => {
+      // Ausatmen — 8 Sek
+      circle.className = 'breath-circle out';
+      label.innerHTML = 'Aus<br>8 Sek';
+      phase.textContent = 'Ausatmen...';
+      haptic();
+
+      _breathTimer = setTimeout(() => {
+        if (_breathCount < 4) {
+          runBreathCycle();
+        } else {
+          circle.className = 'breath-circle';
+          label.innerHTML = '🌸<br>Fertig';
+          phase.textContent = '✅ Gut gemacht!';
+          count.textContent = '4 Runden abgeschlossen';
+          haptic('heavy');
+          showToast('🌸 Atemübung abgeschlossen! Du hast das toll gemacht.');
+        }
+      }, 8000);
+    }, 7000);
+  }, 4000);
+}
+
+function stopBreathing() {
+  if (_breathTimer) clearTimeout(_breathTimer);
+  _breathTimer = null;
+  _breathCount = 0;
+  const circle = document.getElementById('breath-circle');
+  const label = document.getElementById('breath-label');
+  const phase = document.getElementById('breath-phase-text');
+  if (circle) { circle.className = 'breath-circle'; label.innerHTML = 'Tippe<br>zum Start'; }
+  if (phase) phase.textContent = 'Bereit';
+  document.getElementById('breath-card').style.display = 'none';
+}
+
+function toggleGrounding(n) {
+  haptic();
+  const el = document.getElementById(`gs-${n}`);
+  if (_groundingDone.has(n)) { _groundingDone.delete(n); el.classList.remove('done'); }
+  else { _groundingDone.add(n); el.classList.add('done'); }
+  if (_groundingDone.size === 5) showToast('🌿 Grounding abgeschlossen! Du bist jetzt im Hier und Jetzt.');
+}
+
+function resetGrounding() {
+  _groundingDone.clear();
+  groundingSteps.forEach(s => document.getElementById(`gs-${s.n}`)?.classList.remove('done'));
+}
+
+let _factIdx = 0;
+function nextFact() {
+  haptic();
+  _factIdx = (_factIdx + 1) % panicFacts.length;
+  const el = document.getElementById('panic-fact-display');
+  if (el) el.textContent = panicFacts[_factIdx];
+}
+
+function nextAffirmation() {
+  haptic();
+  _affirmIdx = (_affirmIdx + 1) % affirmations.length;
+  const el = document.getElementById('affirmation-display');
+  if (el) el.innerHTML = `"${affirmations[_affirmIdx]}"`;
+}
+
+// ═══════════════════════════════════════════════════════
+// SWITCH TAB — update to include aidy
+// ═══════════════════════════════════════════════════════
+function switchTab(tab) {
+  haptic();
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'evening') renderSummary();
+  if (tab === 'aidy') renderAidy();
 }
 
 loadAll();
