@@ -958,19 +958,7 @@ async function loadWeather() {
 }
 
 function shareWeek() {
-  haptic();
-  const items = document.querySelectorAll('#week-section .week-day');
-  if (!items.length) return;
-  let text = '📅 7-Tage-Wettervorschau:\n\n';
-  items.forEach(el => {
-    const name = el.querySelector('.week-day-name')?.textContent;
-    const icon = el.querySelector('.week-day-icon')?.textContent;
-    const max  = el.querySelector('.week-day-max')?.textContent;
-    const min  = el.querySelector('.week-day-min')?.textContent;
-    text += `${name}: ${icon} ${max} / ${min}\n`;
-  });
-  text += '\n— Maya\'s Morning Brief 🌅';
-  shareText(text, '7-Tage-Vorschau');
+  shareCard('week-section', '📅', '7-Tage-Vorschau');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1374,7 +1362,18 @@ async function captureCardAsBlob(cardId) {
              document.getElementById(cardId);
   if (!el) return null;
   const canvas = await html2canvas(el, {
-    scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false,
+    scale: 2,
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    allowTaint: true,
+    foreignObjectRendering: false,
+    logging: false,
+    onclone: (doc, clone) => {
+      // Ensure cloned element is visible and fully rendered
+      clone.style.display = 'block';
+      clone.style.visibility = 'visible';
+      clone.style.opacity = '1';
+    }
   });
   return new Promise(res => canvas.toBlob(res, 'image/png'));
 }
@@ -2064,16 +2063,7 @@ function renderRecipe() {
 }
 
 function shareRecipe() {
-  haptic();
-  const r = recipes[Math.floor((new Date() - new Date(new Date().getFullYear(),0,0))/86400000) % recipes.length];
-  let text = `🍽️ Rezept des Tages: ${r.name}\n`;
-  text += `${r.kcal} kcal · ${r.protein}g Protein · ${r.fat}g Fett · ${r.carbs}g KH\n\n`;
-  text += `Zutaten:\n`;
-  r.ingredients.forEach(([n,a]) => { text += `• ${n} ${a}\n`; });
-  text += `\nZubereitung:\n`;
-  r.steps.forEach((s,i) => { text += `${i+1}. ${s}\n`; });
-  text += `\n🔥 ${r.airfryer}\n— May's Brief`;
-  shareText(text, r.name);
+  shareCard('recipe-section', '🍽️', 'Rezept des Tages');
 }
 
 // ═══════════════════════════════════════════════════════
