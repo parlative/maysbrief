@@ -1342,184 +1342,279 @@ function renderSummary() {
 }
 
 // ═══════════════════════════════════════════════════════
-// SHARE — Bild teilen via Canvas (iOS-safe, kein html2canvas)
+// SHARE — Canvas-Bilder + natives iOS Share Sheet
 // ═══════════════════════════════════════════════════════
 
-// Helpers
-function roundRect(ctx, x, y, w, h, r) {
+// Direkt das native Share Sheet öffnen (iOS Safari öffnet das echte Share Sheet)
+async function nativeShare(blob, emoji, title) {
+  const file = new File([blob], 'maya-brief.png', { type: 'image/png' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: `${emoji} ${title} — Maya's Brief` });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // User hat abgebrochen
+    }
+  }
+  // Fallback: direkt speichern
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'maya-brief.png'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('💾 Bild gespeichert!');
+}
+
+// Canvas helper: abgerundetes Rechteck
+function canvasRR(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x+r, y);
   ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
-  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
-  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
-  ctx.lineTo(x, y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
   ctx.closePath();
 }
-function canvasHeader(ctx, W, title, date) {
-  ctx.fillStyle = '#6366f1';
-  roundRect(ctx, 0, 0, W, 56, 0); ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 22px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('✨ Maya\'s Brief', 20, 36);
-  ctx.font = '16px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillText(date, W-20, 36);
-  ctx.textAlign = 'left';
-  // Card title bar
-  ctx.fillStyle = '#f1f5f9';
-  ctx.fillRect(0, 56, W, 44);
-  ctx.fillStyle = '#1a1a2e';
-  ctx.font = 'bold 18px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(title, 20, 84);
-}
 
+// Wochenwetter-Bild
 async function shareWeekCanvas() {
   const days = [...document.querySelectorAll('#week-section .week-day')];
-  if (!days.length) return shareText('📅 7-Tage-Vorschau\n— Maya\'s Brief', '7-Tage-Vorschau');
+  if (!days.length) { shareText('📅 7-Tage-Vorschau\n— Maya\'s Brief', '7-Tage-Vorschau'); return; }
 
-  const W = 720, scale = 2, PAD = 20;
-  const colW = Math.floor((W - PAD*2) / days.length);
-  const H = 260;
+  const W = 1080, H = 560;
   const canvas = document.createElement('canvas');
-  canvas.width = W * scale; canvas.height = H * scale;
+  canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-  ctx.scale(scale, scale);
 
-  const today = new Date().toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'});
+  // Gradient Hintergrund
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, '#1e1b4b');
+  grad.addColorStop(1, '#312e81');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
 
-  // Background
-  ctx.fillStyle = '#f8f9ff'; ctx.fillRect(0, 0, W, H);
-  canvasHeader(ctx, W, '📅 7-Tage-Vorschau', today);
+  // Dezente Kreise im Hintergrund
+  ctx.globalAlpha = 0.07;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(W-80, 80, 200, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(60, H-60, 150, 0, Math.PI*2); ctx.fill();
+  ctx.globalAlpha = 1;
 
-  // Day columns
+  // Header
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fillRect(0, 0, W, 80);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 28px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText('✨ Maya\'s Morning Brief', 36, 50);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = '22px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.textAlign = 'right';
+  const dateStr = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+  ctx.fillText(dateStr, W-36, 50);
+  ctx.textAlign = 'left';
+
+  // Titel
+  ctx.fillStyle = '#a5b4fc';
+  ctx.font = 'bold 22px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText('📅  7-TAGE-VORSCHAU', 36, 118);
+
+  // Tag-Kacheln
+  const PAD = 36, GAP = 12;
+  const colW = Math.floor((W - PAD*2 - GAP*(days.length-1)) / days.length);
+  const tileY = 140, tileH = 320;
+
   days.forEach((el, i) => {
-    const name = el.querySelector('.week-day-name')?.textContent || '';
-    const icon = el.querySelector('.week-day-icon')?.textContent || '';
-    const max  = el.querySelector('.week-day-max')?.textContent  || '';
-    const min  = el.querySelector('.week-day-min')?.textContent  || '';
-    const x = PAD + i * colW;
+    const name = el.querySelector('.week-day-name')?.textContent?.trim() || '';
+    const icon = el.querySelector('.week-day-icon')?.textContent?.trim() || '';
+    const max  = el.querySelector('.week-day-max')?.textContent?.trim()  || '';
+    const min  = el.querySelector('.week-day-min')?.textContent?.trim()  || '';
     const isToday = el.classList.contains('today');
+    const x = PAD + i * (colW + GAP);
 
-    // Column bg
-    ctx.fillStyle = isToday ? '#ede9fe' : '#ffffff';
-    roundRect(ctx, x+2, 108, colW-4, 134, 10); ctx.fill();
+    // Kachel
+    ctx.fillStyle = isToday ? 'rgba(165,180,252,0.25)' : 'rgba(255,255,255,0.08)';
+    canvasRR(ctx, x, tileY, colW, tileH, 16); ctx.fill();
     if (isToday) {
-      ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 2;
-      roundRect(ctx, x+2, 108, colW-4, 134, 10); ctx.stroke();
+      ctx.strokeStyle = '#a5b4fc'; ctx.lineWidth = 2;
+      canvasRR(ctx, x, tileY, colW, tileH, 16); ctx.stroke();
     }
 
-    ctx.textAlign = 'center';
     const cx = x + colW/2;
+    ctx.textAlign = 'center';
 
-    // Day name
-    ctx.fillStyle = isToday ? '#6366f1' : '#64748b';
-    ctx.font = `bold 14px -apple-system,sans-serif`;
-    ctx.fillText(name, cx, 132);
+    // Tag-Name
+    ctx.fillStyle = isToday ? '#c7d2fe' : 'rgba(255,255,255,0.55)';
+    ctx.font = `${isToday?'bold':'normal'} 20px -apple-system,BlinkMacSystemFont,Arial,sans-serif`;
+    ctx.fillText(name, cx, tileY + 40);
 
-    // Icon
-    ctx.font = '28px serif';
-    ctx.fillText(icon, cx, 170);
+    // Emoji
+    ctx.font = '52px serif';
+    ctx.fillText(icon, cx, tileY + 115);
 
-    // Max temp
-    ctx.fillStyle = '#ef4444';
-    ctx.font = 'bold 17px -apple-system,sans-serif';
-    ctx.fillText(max, cx, 202);
+    // Max
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = 'bold 26px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+    ctx.fillText(max, cx, tileY + 170);
 
-    // Min temp
-    ctx.fillStyle = '#3b82f6';
-    ctx.font = '14px -apple-system,sans-serif';
-    ctx.fillText(min, cx, 224);
+    // Min
+    ctx.fillStyle = '#93c5fd';
+    ctx.font = '20px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+    ctx.fillText(min, cx, tileY + 202);
   });
 
   ctx.textAlign = 'left';
+
+  // Footer
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '18px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('maya\'s morning brief  ·  parlative.github.io/maysbrief', W/2, H - 20);
+  ctx.textAlign = 'left';
+
   canvas.toBlob(blob => {
-    if (blob) showImageShareSheet(blob, '📅', '7-Tage-Vorschau');
-    else shareText('📅 7-Tage-Vorschau\n— Maya\'s Brief', '7-Tage-Vorschau');
+    if (blob) nativeShare(blob, '📅', '7-Tage-Vorschau');
   }, 'image/png');
 }
 
+// Rezept-Bild
 async function shareRecipeCanvas() {
   const el = document.getElementById('recipe-section');
-  const name  = el?.querySelector('.recipe-name')?.textContent || 'Rezept des Tages';
-  const badge = el?.querySelector('.recipe-kcal-badge')?.textContent || '';
-  const macros = [...(el?.querySelectorAll('.recipe-macro')||[])].map(m => m.textContent.trim());
-  const ings  = [...(el?.querySelectorAll('.recipe-ingredients li')||[])].map(li => li.textContent.trim());
-  const steps = [...(el?.querySelectorAll('.recipe-steps li')||[])].map(li => li.textContent.trim());
-  const airfryer = el?.querySelector('.recipe-airfryer')?.textContent || '';
-
-  const W = 720, scale = 2, PAD = 24;
-  const lineH = 26;
-  const H = Math.min(900, 120 + 50 + 30 + ings.length*lineH + 30 + steps.length*lineH + 60);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = W * scale; canvas.height = H * scale;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(scale, scale);
-
-  const today = new Date().toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'});
-
-  ctx.fillStyle = '#fffbf5'; ctx.fillRect(0, 0, W, H);
-  canvasHeader(ctx, W, '🍽️ Rezept des Tages', today);
-
-  let y = 115;
-
-  // Recipe name
-  ctx.fillStyle = '#1a1a2e';
-  ctx.font = 'bold 22px -apple-system,sans-serif';
-  ctx.fillText(name, PAD, y); y += 30;
-
-  // Badge + macros
-  ctx.fillStyle = '#f97316';
-  ctx.font = '14px -apple-system,sans-serif';
-  ctx.fillText(badge, PAD, y); y += 24;
-
-  ctx.fillStyle = '#6366f1';
-  ctx.font = '14px -apple-system,sans-serif';
-  ctx.fillText(macros.join('  ·  '), PAD, y); y += 30;
-
-  // Zutaten
-  ctx.fillStyle = '#374151';
-  ctx.font = 'bold 16px -apple-system,sans-serif';
-  ctx.fillText('ZUTATEN', PAD, y); y += 24;
-  ctx.font = '15px -apple-system,sans-serif';
-  ctx.fillStyle = '#4b5563';
-  ings.forEach(ing => {
-    if (y > H - 60) return;
-    ctx.fillText('• ' + ing, PAD, y); y += lineH;
+  const name    = el?.querySelector('.recipe-name')?.textContent?.trim() || 'Rezept des Tages';
+  const badge   = el?.querySelector('.recipe-kcal-badge')?.textContent?.trim() || '';
+  const macros  = [...(el?.querySelectorAll('.recipe-macro')||[])].map(m => m.textContent.trim());
+  const ings    = [...(el?.querySelectorAll('.recipe-ingredients li')||[])].map(li => {
+    const parts = li.textContent.trim().split(/\s{2,}|\t/);
+    return parts.join(' – ');
   });
-  y += 8;
+  const steps   = [...(el?.querySelectorAll('.recipe-steps li')||[])].map(li => li.textContent.trim());
+  const airfryer = el?.querySelector('.recipe-airfryer')?.textContent?.trim() || '';
 
-  // Zubereitung
-  ctx.fillStyle = '#374151';
-  ctx.font = 'bold 16px -apple-system,sans-serif';
-  if (y < H - 60) { ctx.fillText('ZUBEREITUNG', PAD, y); y += 24; }
-  ctx.font = '15px -apple-system,sans-serif';
-  ctx.fillStyle = '#4b5563';
-  steps.forEach((step, i) => {
-    if (y > H - 60) return;
-    // Word-wrap rudimentary
-    const words = `${i+1}. ${step}`.split(' ');
-    let line = '', maxW = W - PAD*2;
-    for (const word of words) {
-      const test = line ? line + ' ' + word : word;
-      if (ctx.measureText(test).width > maxW) {
-        ctx.fillText(line, PAD, y); y += lineH; line = word;
-      } else { line = test; }
+  const W = 1080;
+  const lineH = 34, PAD = 56;
+  const contentW = W - PAD*2;
+
+  // Canvas temporär zum Messen
+  const tmp = document.createElement('canvas').getContext('2d');
+  tmp.font = '24px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+
+  function wrapText(text, maxW) {
+    const words = text.split(' '), lines = [];
+    let line = '';
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (tmp.measureText(test).width > maxW) { lines.push(line); line = w; }
+      else line = test;
     }
-    if (line) { ctx.fillText(line, PAD, y); y += lineH; }
-    y += 4;
-  });
-
-  // Airfryer footer
-  if (airfryer && y < H - 10) {
-    ctx.fillStyle = '#ef4444';
-    ctx.font = 'bold 14px -apple-system,sans-serif';
-    ctx.fillText(airfryer, PAD, y);
+    if (line) lines.push(line);
+    return lines;
   }
 
+  const ingLines   = ings.flatMap(ing => wrapText('• ' + ing, contentW));
+  const stepLines  = steps.flatMap((s, i) => wrapText(`${i+1}.  ${s}`, contentW - 20));
+
+  const H = Math.min(1800,
+    160 +  // header
+    80  +  // name
+    60  +  // badge + macros
+    50  +  // Zutaten-Label
+    ingLines.length * lineH + 20 +
+    50  +  // Zubereitung-Label
+    stepLines.length * lineH + 20 +
+    (airfryer ? 60 : 0) +
+    60     // footer
+  );
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Gradient Hintergrund
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0f172a');
+  grad.addColorStop(1, '#1e1b4b');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+  // Dekokreise
+  ctx.globalAlpha = 0.06;
+  ctx.fillStyle = '#f97316';
+  ctx.beginPath(); ctx.arc(W-100, 100, 220, 0, Math.PI*2); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Header
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(0, 0, W, 88);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 30px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText('✨ Maya\'s Morning Brief', PAD, 56);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '22px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(new Date().toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'}), W-PAD, 56);
+  ctx.textAlign = 'left';
+
+  let y = 110;
+
+  // Label
+  ctx.fillStyle = '#fdba74';
+  ctx.font = 'bold 20px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText('🍽️  REZEPT DES TAGES', PAD, y); y += 50;
+
+  // Name
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 42px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText(name, PAD, y); y += 50;
+
+  // Badge + Makros
+  ctx.fillStyle = '#fdba74';
+  ctx.font = 'bold 22px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText(badge, PAD, y); y += 34;
+  ctx.fillStyle = '#a5b4fc';
+  ctx.font = '22px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText(macros.join('   ·   '), PAD, y); y += 48;
+
+  // Trennlinie
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W-PAD, y); ctx.stroke(); y += 30;
+
+  // Zutaten
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 18px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText('ZUTATEN', PAD, y); y += 32;
+  ctx.font = '24px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ingLines.forEach(l => { ctx.fillText(l, PAD, y); y += lineH; });
+  y += 20;
+
+  // Trennlinie
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W-PAD, y); ctx.stroke(); y += 30;
+
+  // Zubereitung
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 18px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillText('ZUBEREITUNG', PAD, y); y += 32;
+  ctx.font = '24px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  stepLines.forEach(l => { ctx.fillText(l, PAD + (l.match(/^\d+\./) ? 0 : 20), y); y += lineH; });
+  y += 20;
+
+  // Airfryer
+  if (airfryer) {
+    ctx.fillStyle = 'rgba(239,68,68,0.15)';
+    canvasRR(ctx, PAD, y, W-PAD*2, 48, 10); ctx.fill();
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = 'bold 22px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+    ctx.fillText(airfryer, PAD+16, y+32); y += 56;
+  }
+
+  // Footer
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '18px -apple-system,BlinkMacSystemFont,Arial,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('maya\'s morning brief  ·  parlative.github.io/maysbrief', W/2, H - 22);
+  ctx.textAlign = 'left';
+
   canvas.toBlob(blob => {
-    if (blob) showImageShareSheet(blob, '🍽️', 'Rezept des Tages');
-    else shareText(`🍽️ ${name}\n— Maya's Brief`, 'Rezept');
+    if (blob) nativeShare(blob, '🍽️', 'Rezept des Tages');
   }, 'image/png');
 }
 
@@ -1538,10 +1633,8 @@ async function shareCard(cardId, emoji, title) {
   try {
     const blob = await captureCardAsBlob(cardId);
     if (btn) { btn.textContent = '⎙ Teilen'; btn.disabled = false; }
-    if (blob && navigator.share && navigator.canShare?.({ files: [new File([blob], 'brief.png', {type:'image/png'})] })) {
-      await navigator.share({ title: `${emoji} ${title} — Maya's Morning Brief`, files: [new File([blob], 'morning-brief.png', { type: 'image/png' })] });
-    } else if (blob) {
-      showImageShareSheet(blob, emoji, title);
+    if (blob) {
+      await nativeShare(blob, emoji, title);
     } else {
       shareText(`${emoji} ${title}\n— Maya's Morning Brief 🌅`, title);
     }
@@ -1549,66 +1642,6 @@ async function shareCard(cardId, emoji, title) {
     if (btn) { btn.textContent = '⎙ Teilen'; btn.disabled = false; }
     if (e.name !== 'AbortError') shareText(`${emoji} ${title}\n— Maya's Morning Brief 🌅`, title);
   }
-}
-
-function showImageShareSheet(blob, emoji, title) {
-  document.getElementById('custom-share-sheet')?.remove();
-  const imgUrl = URL.createObjectURL(blob);
-  const file = new File([blob], 'morning-brief.png', { type: 'image/png' });
-  const sheet = document.createElement('div');
-  sheet.id = 'custom-share-sheet';
-  sheet.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.5);';
-  sheet.innerHTML = `
-    <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom)+16px);">
-      <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px;"></div>
-      <img src="${imgUrl}" style="width:100%;border-radius:12px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-        <button id="ss-native" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:#007aff;display:flex;align-items:center;justify-content:center;font-size:26px;">📤</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">Teilen</span>
-        </button>
-        <button id="ss-download" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:#34c759;display:flex;align-items:center;justify-content:center;font-size:26px;">💾</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">Speichern</span>
-        </button>
-        <button id="ss-instagram" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px;">📸</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">Instagram</span>
-        </button>
-        <button id="ss-whatsapp" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:#25d366;display:flex;align-items:center;justify-content:center;font-size:26px;">💬</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">WhatsApp</span>
-        </button>
-      </div>
-      <button id="ss-cancel" style="width:100%;background:#f2f2f7;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;color:#333;cursor:pointer;">Abbrechen</button>
-    </div>`;
-  document.body.appendChild(sheet);
-  sheet.addEventListener('click', e => { if(e.target===sheet){sheet.remove();URL.revokeObjectURL(imgUrl);}});
-  document.getElementById('ss-native').onclick = async () => {
-    try { await navigator.share({ title:`${emoji} ${title}`, files:[file] }); } catch {}
-    sheet.remove(); URL.revokeObjectURL(imgUrl);
-  };
-  document.getElementById('ss-download').onclick = () => {
-    const a=document.createElement('a'); a.href=imgUrl; a.download='morning-brief.png'; a.click();
-    showToast('💾 Bild gespeichert!'); sheet.remove();
-  };
-  document.getElementById('ss-instagram').onclick = async () => {
-    sheet.remove();
-    try { await navigator.share({ files:[file] }); } catch {
-      const a=document.createElement('a'); a.href=imgUrl; a.download='morning-brief.png'; a.click();
-      setTimeout(()=>{window.location.href='instagram://';},500);
-      showToast('📸 Bild gespeichert → Instagram öffnen');
-    }
-    URL.revokeObjectURL(imgUrl);
-  };
-  document.getElementById('ss-whatsapp').onclick = async () => {
-    sheet.remove();
-    try { await navigator.share({ files:[file], title:`${emoji} ${title}` }); } catch {
-      window.open(`https://wa.me/?text=${encodeURIComponent(`${emoji} ${title} — Maya's Morning Brief 🌅`)}`, '_blank');
-    }
-    URL.revokeObjectURL(imgUrl);
-  };
-  document.getElementById('ss-cancel').onclick = () => { sheet.remove(); URL.revokeObjectURL(imgUrl); };
 }
 
 function shareText(text, title) {
