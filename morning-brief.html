@@ -958,7 +958,8 @@ async function loadWeather() {
 }
 
 function shareWeek() {
-  shareCard('week-section', '📅', '7-Tage-Vorschau');
+  haptic('medium');
+  shareWeekCanvas();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1341,41 +1342,185 @@ function renderSummary() {
 }
 
 // ═══════════════════════════════════════════════════════
-// SHARE — Screenshot als Bild teilen
+// SHARE — Bild teilen via Canvas (iOS-safe, kein html2canvas)
 // ═══════════════════════════════════════════════════════
 
-let _html2canvasLoaded = false;
-async function loadHtml2Canvas() {
-  if (_html2canvasLoaded) return;
-  await new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-    s.onload = () => { _html2canvasLoaded = true; res(); };
-    s.onerror = rej;
-    document.head.appendChild(s);
-  });
+// Helpers
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+function canvasHeader(ctx, W, title, date) {
+  ctx.fillStyle = '#6366f1';
+  roundRect(ctx, 0, 0, W, 56, 0); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 22px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText('✨ Maya\'s Brief', 20, 36);
+  ctx.font = '16px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(date, W-20, 36);
+  ctx.textAlign = 'left';
+  // Card title bar
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(0, 56, W, 44);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.font = 'bold 18px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(title, 20, 84);
 }
 
-async function captureCardAsBlob(cardId) {
-  await loadHtml2Canvas();
-  const el = document.getElementById(cardId)?.querySelector('.card') ||
-             document.getElementById(cardId);
-  if (!el) return null;
-  const canvas = await html2canvas(el, {
-    scale: 2,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    allowTaint: true,
-    foreignObjectRendering: false,
-    logging: false,
-    onclone: (doc, clone) => {
-      // Ensure cloned element is visible and fully rendered
-      clone.style.display = 'block';
-      clone.style.visibility = 'visible';
-      clone.style.opacity = '1';
+async function shareWeekCanvas() {
+  const days = [...document.querySelectorAll('#week-section .week-day')];
+  if (!days.length) return shareText('📅 7-Tage-Vorschau\n— Maya\'s Brief', '7-Tage-Vorschau');
+
+  const W = 720, scale = 2, PAD = 20;
+  const colW = Math.floor((W - PAD*2) / days.length);
+  const H = 260;
+  const canvas = document.createElement('canvas');
+  canvas.width = W * scale; canvas.height = H * scale;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  const today = new Date().toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'});
+
+  // Background
+  ctx.fillStyle = '#f8f9ff'; ctx.fillRect(0, 0, W, H);
+  canvasHeader(ctx, W, '📅 7-Tage-Vorschau', today);
+
+  // Day columns
+  days.forEach((el, i) => {
+    const name = el.querySelector('.week-day-name')?.textContent || '';
+    const icon = el.querySelector('.week-day-icon')?.textContent || '';
+    const max  = el.querySelector('.week-day-max')?.textContent  || '';
+    const min  = el.querySelector('.week-day-min')?.textContent  || '';
+    const x = PAD + i * colW;
+    const isToday = el.classList.contains('today');
+
+    // Column bg
+    ctx.fillStyle = isToday ? '#ede9fe' : '#ffffff';
+    roundRect(ctx, x+2, 108, colW-4, 134, 10); ctx.fill();
+    if (isToday) {
+      ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 2;
+      roundRect(ctx, x+2, 108, colW-4, 134, 10); ctx.stroke();
     }
+
+    ctx.textAlign = 'center';
+    const cx = x + colW/2;
+
+    // Day name
+    ctx.fillStyle = isToday ? '#6366f1' : '#64748b';
+    ctx.font = `bold 14px -apple-system,sans-serif`;
+    ctx.fillText(name, cx, 132);
+
+    // Icon
+    ctx.font = '28px serif';
+    ctx.fillText(icon, cx, 170);
+
+    // Max temp
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 17px -apple-system,sans-serif';
+    ctx.fillText(max, cx, 202);
+
+    // Min temp
+    ctx.fillStyle = '#3b82f6';
+    ctx.font = '14px -apple-system,sans-serif';
+    ctx.fillText(min, cx, 224);
   });
-  return new Promise(res => canvas.toBlob(res, 'image/png'));
+
+  ctx.textAlign = 'left';
+  canvas.toBlob(blob => {
+    if (blob) showImageShareSheet(blob, '📅', '7-Tage-Vorschau');
+    else shareText('📅 7-Tage-Vorschau\n— Maya\'s Brief', '7-Tage-Vorschau');
+  }, 'image/png');
+}
+
+async function shareRecipeCanvas() {
+  const el = document.getElementById('recipe-section');
+  const name  = el?.querySelector('.recipe-name')?.textContent || 'Rezept des Tages';
+  const badge = el?.querySelector('.recipe-kcal-badge')?.textContent || '';
+  const macros = [...(el?.querySelectorAll('.recipe-macro')||[])].map(m => m.textContent.trim());
+  const ings  = [...(el?.querySelectorAll('.recipe-ingredients li')||[])].map(li => li.textContent.trim());
+  const steps = [...(el?.querySelectorAll('.recipe-steps li')||[])].map(li => li.textContent.trim());
+  const airfryer = el?.querySelector('.recipe-airfryer')?.textContent || '';
+
+  const W = 720, scale = 2, PAD = 24;
+  const lineH = 26;
+  const H = Math.min(900, 120 + 50 + 30 + ings.length*lineH + 30 + steps.length*lineH + 60);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W * scale; canvas.height = H * scale;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  const today = new Date().toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'numeric'});
+
+  ctx.fillStyle = '#fffbf5'; ctx.fillRect(0, 0, W, H);
+  canvasHeader(ctx, W, '🍽️ Rezept des Tages', today);
+
+  let y = 115;
+
+  // Recipe name
+  ctx.fillStyle = '#1a1a2e';
+  ctx.font = 'bold 22px -apple-system,sans-serif';
+  ctx.fillText(name, PAD, y); y += 30;
+
+  // Badge + macros
+  ctx.fillStyle = '#f97316';
+  ctx.font = '14px -apple-system,sans-serif';
+  ctx.fillText(badge, PAD, y); y += 24;
+
+  ctx.fillStyle = '#6366f1';
+  ctx.font = '14px -apple-system,sans-serif';
+  ctx.fillText(macros.join('  ·  '), PAD, y); y += 30;
+
+  // Zutaten
+  ctx.fillStyle = '#374151';
+  ctx.font = 'bold 16px -apple-system,sans-serif';
+  ctx.fillText('ZUTATEN', PAD, y); y += 24;
+  ctx.font = '15px -apple-system,sans-serif';
+  ctx.fillStyle = '#4b5563';
+  ings.forEach(ing => {
+    if (y > H - 60) return;
+    ctx.fillText('• ' + ing, PAD, y); y += lineH;
+  });
+  y += 8;
+
+  // Zubereitung
+  ctx.fillStyle = '#374151';
+  ctx.font = 'bold 16px -apple-system,sans-serif';
+  if (y < H - 60) { ctx.fillText('ZUBEREITUNG', PAD, y); y += 24; }
+  ctx.font = '15px -apple-system,sans-serif';
+  ctx.fillStyle = '#4b5563';
+  steps.forEach((step, i) => {
+    if (y > H - 60) return;
+    // Word-wrap rudimentary
+    const words = `${i+1}. ${step}`.split(' ');
+    let line = '', maxW = W - PAD*2;
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, PAD, y); y += lineH; line = word;
+      } else { line = test; }
+    }
+    if (line) { ctx.fillText(line, PAD, y); y += lineH; }
+    y += 4;
+  });
+
+  // Airfryer footer
+  if (airfryer && y < H - 10) {
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 14px -apple-system,sans-serif';
+    ctx.fillText(airfryer, PAD, y);
+  }
+
+  canvas.toBlob(blob => {
+    if (blob) showImageShareSheet(blob, '🍽️', 'Rezept des Tages');
+    else shareText(`🍽️ ${name}\n— Maya's Brief`, 'Rezept');
+  }, 'image/png');
 }
 
 function showToast(msg) {
@@ -2063,7 +2208,8 @@ function renderRecipe() {
 }
 
 function shareRecipe() {
-  shareCard('recipe-section', '🍽️', 'Rezept des Tages');
+  haptic('medium');
+  shareRecipeCanvas();
 }
 
 // ═══════════════════════════════════════════════════════
