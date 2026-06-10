@@ -983,14 +983,14 @@ async function loadWeather() {
     const data=await fetch(url).then(r=>r.json());
     const c=data.current, d=data.daily, h=data.hourly;
     _weatherCache = {c, d, city};
-    // Cache display values for share card
-    window._weatherDisplay = { temp, feels, humid, wind, code, maxT, minT, uv, uvInfo, precSum, precPro, city };
 
     const temp=Math.round(c.temperature_2m), feels=Math.round(c.apparent_temperature);
     const humid=c.relative_humidity_2m, wind=Math.round(c.wind_speed_10m), code=c.weather_code;
     const maxT=Math.round(d.temperature_2m_max[0]), minT=Math.round(d.temperature_2m_min[0]);
     const precSum=d.precipitation_sum[0], precPro=d.precipitation_probability_max[0];
     const uv=Math.round(c.uv_index||0), uvInfo=uvLabel(uv);
+    // Cache display values for share card (must be after var declarations)
+    window._weatherDisplay = { temp, feels, humid, wind, code, maxT, minT, uv, uvInfo, precSum, precPro, city };
     const uvPct=Math.min(uv/11,1)*100;
 
     // Stündliche Regenvorhersage: heute ab jetzt, sonst morgen
@@ -1194,7 +1194,7 @@ async function loadNews() {
         <div class="card">
           <div class="card-header">
             <div class="card-title">📰 Breaking News</div>
-            <button class="share-btn" onclick="shareCardAsImage('news-section','📰 Breaking News')">📸 Teilen</button>
+            <button class="share-btn" onclick="shareNewsCanvas('news-section','📰 Breaking News')">📸 Teilen</button>
           </div>
           ${html}
         </div>`;
@@ -1277,7 +1277,7 @@ async function loadWarNews() {
     <div class="card war-card">
       <div class="card-header">
         <div class="card-title"><span class="live-dot"></span>Israel · 🇺🇸 USA · 🇮🇷 Iran</div>
-        <button class="share-btn" onclick="shareCardAsImage('war-section','🔴 Israel · USA · Iran')">📸 Teilen</button>
+        <button class="share-btn" onclick="shareNewsCanvas('war-section','🔴 Israel · USA · Iran')">📸 Teilen</button>
       </div>
       ${html}
     </div>`;
@@ -1593,7 +1593,7 @@ function renderSummary() {
     <div class="summary-card" style="animation-delay:0.22s">
       <div class="summary-card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="summary-card-title" style="margin-bottom:0;">📰 Top News des Tages</div>
-        <button class="share-btn" onclick="shareCardAsImage('news-section','📰 Breaking News')">📸 Teilen</button>
+        <button class="share-btn" onclick="shareNewsCanvas('news-section','📰 Breaking News')">📸 Teilen</button>
       </div>
       ${newsHtml}
     </div>`;
@@ -3352,18 +3352,49 @@ function switchTab(tab) {
 // ═══════════════════════════════════════════════════════
 let _inAppBrowserUrl = '';
 
+// Sites known to block iframes
+const _iframeBlockedDomains = ['bbc.com','bbc.co.uk','nytimes.com','nyt.com','t.co','twitter.com','x.com','instagram.com','facebook.com'];
+
 function openInAppBrowser(url) {
   if (!url) return;
   _inAppBrowserUrl = url;
+
+  // Check if domain is known to block iframes → open directly in Safari
+  try {
+    const hostname = new URL(url).hostname.replace('www.','');
+    if (_iframeBlockedDomains.some(d => hostname.includes(d))) {
+      window.open(url, '_blank');
+      return;
+    }
+  } catch {}
+
   const browser = document.getElementById('inapp-browser');
   const iframe = document.getElementById('inapp-iframe');
   const urlBar = document.getElementById('inapp-url-bar');
-  // Display URL without protocol
   urlBar.textContent = url.replace(/^https?:\/\//,'');
-  // Try to load in iframe
+
+  // Listen for load errors → fall back to Safari
+  iframe.onerror = () => { closeInAppBrowser(); window.open(url, '_blank'); };
+
+  // Timeout fallback: if iframe stays empty for 4s, open in Safari
+  iframe.onload = null;
+  const fallbackTimer = setTimeout(() => {
+    try {
+      // If iframe contentDocument is inaccessible (cross-origin block), open externally
+      const doc = iframe.contentDocument;
+      if (!doc || doc.body?.innerHTML === '') {
+        closeInAppBrowser();
+        window.open(url, '_blank');
+      }
+    } catch {
+      closeInAppBrowser();
+      window.open(url, '_blank');
+    }
+  }, 4000);
+
+  iframe.onload = () => clearTimeout(fallbackTimer);
   iframe.src = url;
   browser.style.display = 'flex';
-  // Prevent body scroll
   document.body.style.overflow = 'hidden';
 }
 
@@ -3464,6 +3495,153 @@ function renderMorningReflection() {
 
 // ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// NEWS SHARE — Canvas-based card
+// ═══════════════════════════════════════════════════════
+async function shareNewsCanvas(sectionId, label) {
+  haptic('medium');
+  const btn = event?.target?.closest('.share-btn');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+
+  try {
+    // Collect news items from the DOM
+    const section = document.getElementById(sectionId);
+    const items = section ? [...section.querySelectorAll('.news-item')] : [];
+    const isWar = sectionId === 'war-section';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080; canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    const grad = ctx.createLinearGradient(0, 0, 0, 1080);
+    if (isWar) {
+      grad.addColorStop(0, '#1a0505'); grad.addColorStop(1, '#2d0a0a');
+    } else {
+      grad.addColorStop(0, '#0a0a1a'); grad.addColorStop(1, '#1a1a2e');
+    }
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1080);
+
+    // Accent line top
+    ctx.fillStyle = isWar ? '#ff375f' : '#0a84ff';
+    ctx.fillRect(0, 0, 1080, 8);
+
+    // Header
+    ctx.textAlign = 'left';
+    ctx.fillStyle = isWar ? '#ff375f' : '#0a84ff';
+    ctx.font = 'bold 34px -apple-system, Arial';
+    ctx.fillText(label, 60, 80);
+
+    const now = new Date();
+    const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '26px -apple-system, Arial';
+    ctx.fillText(`${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()} · Maya's Morning Brief`, 60, 120);
+
+    // Divider
+    ctx.strokeStyle = isWar ? 'rgba(255,63,95,0.4)' : 'rgba(10,132,255,0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(60, 140); ctx.lineTo(1020, 140); ctx.stroke();
+
+    // News items
+    const textItems = items.map(el => ({
+      text: el.querySelector('.news-text')?.textContent?.trim() || '',
+      src: el.querySelector('.news-source')?.textContent?.trim() || ''
+    })).filter(i => i.text).slice(0, 5);
+
+    let y = 190;
+    textItems.forEach((item, i) => {
+      // Number circle
+      ctx.fillStyle = isWar ? '#ff375f' : '#0a84ff';
+      ctx.beginPath(); ctx.arc(90, y + 4, 22, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 24px -apple-system, Arial'; ctx.textAlign = 'center';
+      ctx.fillText(i + 1, 90, y + 13);
+      ctx.textAlign = 'left';
+
+      // Headline text (wrap)
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 32px -apple-system, Arial';
+      const words = item.text.split(' ');
+      let line = '', lineY = y;
+      const maxW = 870, lineH = 42;
+      for (const word of words) {
+        const test = line + word + ' ';
+        if (ctx.measureText(test).width > maxW && line) {
+          ctx.fillText(line.trim(), 130, lineY);
+          line = word + ' '; lineY += lineH;
+        } else { line = test; }
+      }
+      ctx.fillText(line.trim(), 130, lineY);
+
+      // Source
+      ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.font = '22px -apple-system, Arial';
+      ctx.fillText(item.src.split('·')[0].trim(), 130, lineY + 32);
+
+      y = lineY + 80;
+    });
+
+    // Watermark
+    ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.font = '22px -apple-system, Arial'; ctx.textAlign = 'center';
+    ctx.fillText("Maya's Morning Brief 🌅", 540, 1048);
+
+    if (btn) { btn.textContent = '📸 Teilen'; btn.disabled = false; }
+
+    canvas.toBlob(blob => {
+      if (!blob) { showToast('Fehler'); return; }
+      const file = new File([blob], 'news.png', { type: 'image/png' });
+      const imgUrl = URL.createObjectURL(blob);
+      document.getElementById('custom-share-sheet')?.remove();
+      const sheet = document.createElement('div');
+      sheet.id = 'custom-share-sheet';
+      sheet.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.55);';
+      sheet.innerHTML = `
+        <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom)+16px);">
+          <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 14px;"></div>
+          <img src="${imgUrl}" style="width:100%;max-height:280px;object-fit:contain;border-radius:12px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+            <button id="ns-native" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
+              <div style="width:56px;height:56px;border-radius:14px;background:#007aff;display:flex;align-items:center;justify-content:center;font-size:28px;">📤</div>
+              <span style="font-size:11px;color:#333;font-weight:600;">Teilen</span>
+            </button>
+            <button id="ns-instagram" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
+              <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:28px;">📸</div>
+              <span style="font-size:11px;color:#333;font-weight:600;">Instagram</span>
+            </button>
+            <button id="ns-save" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
+              <div style="width:56px;height:56px;border-radius:14px;background:#34c759;display:flex;align-items:center;justify-content:center;font-size:28px;">💾</div>
+              <span style="font-size:11px;color:#333;font-weight:600;">Speichern</span>
+            </button>
+          </div>
+          <button id="ns-cancel" style="width:100%;background:#f2f2f7;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;color:#333;cursor:pointer;">Abbrechen</button>
+        </div>`;
+      document.body.appendChild(sheet);
+      sheet.addEventListener('click', e => { if(e.target===sheet){sheet.remove();URL.revokeObjectURL(imgUrl);}});
+      document.getElementById('ns-native').onclick = async () => {
+        try { await navigator.share({ files: [file], title: label }); } catch {}
+        sheet.remove(); URL.revokeObjectURL(imgUrl);
+      };
+      document.getElementById('ns-instagram').onclick = async () => {
+        sheet.remove();
+        if (navigator.share && navigator.canShare?.({files:[file]})) {
+          try { await navigator.share({ files: [file] }); } catch {}
+        } else {
+          const a = document.createElement('a'); a.href = imgUrl; a.download = 'news.png'; a.click();
+          setTimeout(() => window.location.href = 'instagram://', 600);
+        }
+        URL.revokeObjectURL(imgUrl);
+      };
+      document.getElementById('ns-save').onclick = () => {
+        const a = document.createElement('a'); a.href = imgUrl; a.download = 'news.png'; a.click();
+        showToast('💾 Gespeichert!'); sheet.remove();
+      };
+      document.getElementById('ns-cancel').onclick = () => { sheet.remove(); URL.revokeObjectURL(imgUrl); };
+    }, 'image/png', 0.95);
+
+  } catch(e) {
+    if (btn) { btn.textContent = '📸 Teilen'; btn.disabled = false; }
+    showToast('Fehler beim Erstellen');
+  }
+}
+
 // WEATHER SHARE — Canvas-based card
 // ═══════════════════════════════════════════════════════
 async function generateWeatherCard() {
