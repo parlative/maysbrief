@@ -414,12 +414,12 @@
 
     /* ── Aidy Page ── */
     .aidy-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px; margin-bottom: 10px; border: 1px solid var(--border); animation: fadeSlideUp 0.4s ease both; }
-    .aidy-card.purple { background: linear-gradient(135deg,#f0f4ff,#e8eeff); border-color:#a5b4fc; }
-    .aidy-card.green  { background: linear-gradient(135deg,#f0fff4,#e6ffee); border-color:#86efac; }
-    .aidy-card.blue   { background: linear-gradient(135deg,#eff6ff,#dbeafe); border-color:#93c5fd; }
-    .aidy-card.pink   { background: linear-gradient(135deg,#f8f7ff,#ededff); border-color:#c7c7f0; }
-    .aidy-card.amber  { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color:#fcd34d; }
-    .aidy-card.teal   { background: linear-gradient(135deg,#f0fdfa,#ccfbf1); border-color:#5eead4; }
+    .aidy-card.purple { background: var(--card); border-color: var(--border); }
+    .aidy-card.green  { background: var(--card); border-color: var(--border); }
+    .aidy-card.blue   { background: var(--card); border-color: var(--border); }
+    .aidy-card.pink   { background: var(--card); border-color: var(--border); }
+    .aidy-card.amber  { background: var(--card); border-color: var(--border); }
+    .aidy-card.teal   { background: var(--card); border-color: var(--border); }
     .aidy-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
     .aidy-sub   { font-size: 13px; color: var(--subtext); line-height: 1.5; margin-bottom: 12px; }
 
@@ -427,7 +427,7 @@
     @keyframes breatheIn  { 0%{transform:scale(0.7);opacity:0.5} 100%{transform:scale(1.15);opacity:1} }
     @keyframes breatheOut { 0%{transform:scale(1.15);opacity:1} 100%{transform:scale(0.7);opacity:0.5} }
     @keyframes breatheHold{ 0%,100%{transform:scale(1.15)} }
-    .breath-circle { width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#4f6ef7,#1d4ed8); display:flex;align-items:center;justify-content:center;margin:0 auto 16px;cursor:pointer;transition:transform 0.3s; }
+    .breath-circle { width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#334155,#1e293b); display:flex;align-items:center;justify-content:center;margin:0 auto 16px;cursor:pointer;transition:transform 0.3s; }
     .breath-circle.in   { animation: breatheIn  4s ease-in-out forwards; }
     .breath-circle.hold { animation: breatheHold 7s ease forwards; }
     .breath-circle.out  { animation: breatheOut  8s ease-in-out forwards; }
@@ -435,18 +435,18 @@
 
     /* Grounding steps */
     .grounding-step { display:flex;align-items:flex-start;gap:12px;padding:10px;background:rgba(255,255,255,0.6);border-radius:13px;margin-bottom:8px;cursor:pointer;transition:background 0.2s; }
-    .grounding-step.done { background:rgba(22,163,74,0.1);border:1px solid #86efac; }
-    .grounding-num { width:32px;height:32px;border-radius:50%;background:#0a84ff;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
-    .grounding-step.done .grounding-num { background:#16a34a; }
+    .grounding-step.done { background:rgba(51,65,85,0.08);border:1px solid #94a3b8; }
+    .grounding-num { width:32px;height:32px;border-radius:50%;background:#334155;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .grounding-step.done .grounding-num { background:#475569; }
 
     /* Reflection textarea */
-    .reflect-area { width:100%;background:rgba(255,255,255,0.7);border:1.5px solid #c4b5fd;border-radius:13px;padding:10px 12px;font-size:14px;color:var(--text);outline:none;resize:none;font-family:inherit;line-height:1.5; }
-    .reflect-area:focus { border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,0.12); }
-    .aidy-btn { background:#7c3aed;color:#fff;border:none;border-radius:13px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:transform 0.1s,opacity 0.15s;width:100%;margin-top:8px; }
+    .reflect-area { width:100%;background:rgba(255,255,255,0.7);border:1.5px solid #cbd5e1;border-radius:13px;padding:10px 12px;font-size:14px;color:var(--text);outline:none;resize:none;font-family:inherit;line-height:1.5; }
+    .reflect-area:focus { border-color:#475569;box-shadow:0 0 0 3px rgba(71,85,105,0.1); }
+    .aidy-btn { background:#1e293b;color:#fff;border:none;border-radius:13px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:transform 0.1s,opacity 0.15s;width:100%;margin-top:8px; }
     .aidy-btn:active { transform:scale(0.97);opacity:0.85; }
-    .aidy-btn.secondary { background:#f0e7ff;color:#5b21b6;border:1.5px solid #c4b5fd; }
-    .panic-fact { background:rgba(255,255,255,0.6);border-radius:13px;padding:12px 14px;margin-bottom:8px;font-size:14px;color:#1e3a5f;font-weight:500;line-height:1.5;border-left:4px solid #3b82f6; }
-    .affirmation { font-size:20px;font-weight:700;color:#5b21b6;text-align:center;line-height:1.4;padding:16px 8px; }
+    .aidy-btn.secondary { background:#f1f5f9;color:#334155;border:1.5px solid #cbd5e1; }
+    .panic-fact { background:rgba(255,255,255,0.6);border-radius:13px;padding:12px 14px;margin-bottom:8px;font-size:14px;color:#1e293b;font-weight:500;line-height:1.5;border-left:4px solid #334155; }
+    .affirmation { font-size:20px;font-weight:700;color:#1e293b;text-align:center;line-height:1.4;padding:16px 8px; }
     .sleep-rec { display:flex;gap:12px;align-items:center;flex-wrap:wrap; }
     .sleep-pill { flex:1;min-width:80px;background:rgba(255,255,255,0.7);border-radius:13px;padding:10px 12px;text-align:center;border:1px solid #bde0fe; }
     .sleep-pill-label { font-size:10px;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px; }
@@ -9041,11 +9041,11 @@ function renderAidy() {
   document.getElementById('aidy-content').innerHTML = `
 
     <!-- SOS Banner -->
-    <div style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);border-radius:18px;padding:16px;margin-bottom:10px;text-align:center;animation:fadeSlideUp 0.3s ease;">
+    <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:18px;padding:16px;margin-bottom:10px;text-align:center;animation:fadeSlideUp 0.3s ease;">
       <div style="font-size:28px;margin-bottom:8px;">🆘</div>
       <div style="color:#fff;font-size:17px;font-weight:700;margin-bottom:4px;">Panikattacke jetzt?</div>
-      <div style="color:rgba(255,255,255,0.8);font-size:13px;margin-bottom:12px;">Starte die geführte Atemübung — sofortige Wirkung</div>
-      <button onclick="startBreathing()" style="background:#fff;color:#1d4ed8;border:none;border-radius:14px;padding:12px 28px;font-size:15px;font-weight:800;cursor:pointer;width:100%;">Jetzt atmen →</button>
+      <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-bottom:12px;">Starte die geführte Atemübung — sofortige Wirkung</div>
+      <button onclick="startBreathing()" style="background:#fff;color:#1e293b;border:none;border-radius:14px;padding:12px 28px;font-size:15px;font-weight:800;cursor:pointer;width:100%;">Jetzt atmen →</button>
     </div>
 
     <!-- Atemübung -->
@@ -9056,7 +9056,7 @@ function renderAidy() {
         <div class="breath-text" id="breath-label">Tippe<br>zum Start</div>
       </div>
       <div style="text-align:center;margin-bottom:12px;">
-        <div id="breath-phase-text" style="font-size:20px;font-weight:800;color:#1d4ed8;">Bereit</div>
+        <div id="breath-phase-text" style="font-size:20px;font-weight:800;color:#1e293b;">Bereit</div>
         <div id="breath-count-text" style="font-size:13px;color:#6b7280;margin-top:2px;"></div>
       </div>
       <button class="aidy-btn secondary" onclick="stopBreathing()">✕ Stoppen</button>
@@ -9099,9 +9099,9 @@ function renderAidy() {
       <div class="aidy-sub">Spanne jeden Körperbereich für 5 Sekunden an, dann loslassen.</div>
       <div id="bodyscan-steps">
         ${['Füße & Zehen 🦶','Waden & Unterschenkel 🦵','Oberschenkel & Gesäß','Bauch & Rücken','Hände & Arme 🤲','Schultern & Nacken 💪','Gesicht & Kiefer 😌'].map((area,i)=>`
-          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(94,234,212,0.3);cursor:pointer;" onclick="haptic();this.style.opacity=this.style.opacity=='0.4'?'1':'0.4';this.querySelector('.bs-check').style.display=this.style.opacity=='0.4'?'flex':'none'">
-            <div class="bs-check" style="display:none;width:22px;height:22px;border-radius:50%;background:#0d9488;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:13px;font-weight:800;">✓</div>
-            <div style="width:22px;height:22px;border-radius:50%;border:2px solid #5eead4;flex-shrink:0;"></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(100,116,139,0.15);cursor:pointer;" onclick="haptic();this.style.opacity=this.style.opacity=='0.4'?'1':'0.4';this.querySelector('.bs-check').style.display=this.style.opacity=='0.4'?'flex':'none'">
+            <div class="bs-check" style="display:none;width:22px;height:22px;border-radius:50%;background:#334155;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:13px;font-weight:800;">✓</div>
+            <div style="width:22px;height:22px;border-radius:50%;border:2px solid #94a3b8;flex-shrink:0;"></div>
             <span style="font-size:14px;font-weight:500;color:var(--text);">${area}</span>
           </div>`).join('')}
       </div>
@@ -9112,54 +9112,54 @@ function renderAidy() {
       <div class="aidy-title">💧 Kälte-Reset</div>
       <div class="aidy-sub">Kaltes Wasser aktiviert den Taucherreflex — das Nervensystem schaltet sofort um.</div>
       <div style="background:rgba(255,255,255,0.6);border-radius:13px;padding:12px 14px;margin-bottom:10px;">
-        <div style="font-size:14px;font-weight:700;color:#78350f;margin-bottom:6px;">So geht's:</div>
-        <div style="font-size:13px;color:#92400e;line-height:1.6;">
+        <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:6px;">So geht's:</div>
+        <div style="font-size:13px;color:#475569;line-height:1.6;">
           1. Kaltes Wasser bereitstellen<br>
           2. Tief einatmen<br>
           3. Gesicht 30 Sek. ins kalte Wasser tauchen (oder Eiswürfel halten)<br>
           4. Oder: Eiswürfel am Handgelenk / Nacken
         </div>
       </div>
-      <div style="font-size:12px;color:#b45309;text-align:center;">Wirkt innerhalb von 30 Sekunden · Medizinisch belegt</div>
+      <div style="font-size:12px;color:#64748b;text-align:center;">Wirkt innerhalb von 30 Sekunden · Medizinisch belegt</div>
     </div>
 
     <!-- Kontakte -->
     <div class="aidy-card" style="padding:18px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--subtext);margin-bottom:14px;">💛 Deine Menschen</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--subtext);margin-bottom:14px;">Deine Menschen</div>
 
       <!-- Mama -->
-      <div style="background:#fff8f0;border:1.5px solid #fdba74;border-radius:16px;padding:14px 16px;margin-bottom:10px;">
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:16px;padding:14px 16px;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ff9f0a,#ff6b2b);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👩</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👩</div>
           <div>
-            <div style="font-size:17px;font-weight:700;color:#92400e;">Mama</div>
-            <div style="font-size:12px;color:#b45309;">+49 175 2230310</div>
+            <div style="font-size:17px;font-weight:700;color:#1e293b;">Mama</div>
+            <div style="font-size:12px;color:#64748b;">+49 175 2230310</div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <a href="tel:+491752230310" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#ff9f0a;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;transition:opacity 0.15s;" onclick="haptic('medium')">
+          <a href="tel:+491752230310" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#1e293b;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;transition:opacity 0.15s;" onclick="haptic('medium')">
             📞 Anrufen
           </a>
-          <a href="facetime:+491752230310" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#30d158;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;" onclick="haptic('medium')">
+          <a href="facetime:+491752230310" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#475569;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;" onclick="haptic('medium')">
             📹 FaceTime
           </a>
         </div>
       </div>
 
       <!-- Nini -->
-      <div style="background:#fff0f8;border:1.5px solid #f9a8d4;border-radius:16px;padding:14px 16px;">
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:16px;padding:14px 16px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#9333ea);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💕</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:#475569;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👤</div>
           <div>
-            <div style="font-size:17px;font-weight:700;color:#831843;">Nini</div>
-            <div style="font-size:12px;color:#9d174d;">+49 170 9876464</div>
+            <div style="font-size:17px;font-weight:700;color:#1e293b;">Nini</div>
+            <div style="font-size:12px;color:#64748b;">+49 170 9876464</div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <a href="tel:+491709876464" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#ec4899;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;" onclick="haptic('medium')">
+          <a href="tel:+491709876464" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#1e293b;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;" onclick="haptic('medium')">
             📞 Anrufen
           </a>
-          <a href="facetime:+491709876464" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#9333ea;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;" onclick="haptic('medium')">
+          <a href="facetime:+491709876464" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:#475569;color:#fff;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:700;text-decoration:none;" onclick="haptic('medium')">
             📹 FaceTime
           </a>
         </div>
