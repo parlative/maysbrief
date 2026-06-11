@@ -406,6 +406,18 @@
     .recipe-steps li::before { counter-increment:step; content:counter(step); position:absolute; left:0; top:5px; background:#ff6b2b; color:#fff; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
     .recipe-airfryer { background:#fff3e0; border:1px solid #ffcc80; border-radius:10px; padding:8px 12px; margin-top:10px; font-size:12px; color:#7a4500; }
     .recipe-airfryer strong { font-weight:700; }
+    .recipe-fav-btn { margin-top:12px; width:100%; background:none; border:1.5px solid #f8d4b0; border-radius:12px; padding:9px; font-size:13px; font-weight:600; color:#a05020; cursor:pointer; transition:background 0.15s; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .recipe-fav-btn.saved { background:#fff3e8; border-color:#ff6b2b; color:#ff6b2b; }
+    .recipe-fav-btn:active { opacity:0.7; }
+    .recipe-favlist { margin-top:16px; border-top:1.5px solid #f8d4b0; padding-top:14px; }
+    .recipe-favlist-title { font-size:11px; font-weight:700; color:#a05020; text-transform:uppercase; letter-spacing:0.7px; margin-bottom:10px; }
+    .recipe-fav-item { background:#fff; border:1px solid #f8d4b0; border-radius:12px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:background 0.15s; }
+    .recipe-fav-item:active { background:#fff3e8; }
+    .recipe-fav-item-info { flex:1; min-width:0; }
+    .recipe-fav-item-name { font-size:13px; font-weight:700; color:#7a3810; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .recipe-fav-item-meta { font-size:11px; color:#a05020; margin-top:2px; }
+    .recipe-fav-remove { font-size:18px; color:#f8c8a0; padding:4px; flex-shrink:0; }
+    .recipe-fav-empty { font-size:13px; color:#c8a080; text-align:center; padding:8px 0; }
 
     /* ── Shimmer ── */
     .shimmer { background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; height: 18px; margin: 7px 0; }
@@ -2219,6 +2231,8 @@ function renderRecipe() {
 
   const stepsHtml = r.steps.map(s => `<li>${s}</li>`).join('');
 
+  const favs = getRecipeFavs();
+  const isFav = favs.some(f => f.name === r.name);
   document.getElementById('recipe-section').innerHTML = `
     <div class="card recipe-card">
       <div class="card-header">
@@ -2228,6 +2242,111 @@ function renderRecipe() {
       <span class="recipe-kcal-badge">${r.badge} · ${r.kcal} kcal</span>
       <div class="recipe-name">${r.name}</div>
       <div class="recipe-macros">
+        <span class="recipe-macro">🥩 ${r.protein}g Protein</span>
+        <span class="recipe-macro">🫙 ${r.fat}g Fett</span>
+        <span class="recipe-macro">🌾 ${r.carbs}g KH</span>
+      </div>
+      <div class="recipe-section-title">Zutaten</div>
+      <ul class="recipe-ingredients">${ingHtml}</ul>
+      <div class="recipe-section-title">Zubereitung</div>
+      <ol class="recipe-steps">${stepsHtml}</ol>
+      <div class="recipe-airfryer">🔥 <strong>Airfryer:</strong> ${r.airfryer}</div>
+      <button class="recipe-fav-btn${isFav ? ' saved' : ''}" onclick="toggleRecipeFav()" id="recipe-fav-btn">
+        ${isFav ? '❤️ Gespeichert' : '🤍 Zu Favoriten'}
+      </button>
+      <div id="recipe-favlist-container"></div>
+    </div>`;
+  renderRecipeFavList();
+}
+
+// ── Recipe Favourites ──
+function getRecipeFavs() {
+  try { return JSON.parse(localStorage.getItem('recipe_favs') || '[]'); } catch(e) { return []; }
+}
+function saveRecipeFavs(favs) {
+  localStorage.setItem('recipe_favs', JSON.stringify(favs));
+}
+function toggleRecipeFav() {
+  haptic('medium');
+  const now = new Date();
+  const doy = Math.floor((now - new Date(now.getFullYear(),0,0))/86400000);
+  const r = recipes[doy % recipes.length];
+  let favs = getRecipeFavs();
+  const idx = favs.findIndex(f => f.name === r.name);
+  if (idx >= 0) {
+    favs.splice(idx, 1);
+  } else {
+    favs.unshift({ name: r.name, kcal: r.kcal, protein: r.protein, fat: r.fat, carbs: r.carbs, badge: r.badge, idx: doy % recipes.length });
+  }
+  saveRecipeFavs(favs);
+  const btn = document.getElementById('recipe-fav-btn');
+  const isFav = favs.some(f => f.name === r.name);
+  if (btn) {
+    btn.classList.toggle('saved', isFav);
+    btn.innerHTML = isFav ? '❤️ Gespeichert' : '🤍 Zu Favoriten';
+  }
+  renderRecipeFavList();
+}
+function removeRecipeFav(name) {
+  haptic('light');
+  let favs = getRecipeFavs().filter(f => f.name !== name);
+  saveRecipeFavs(favs);
+  // also re-check fav button state
+  const now = new Date();
+  const doy = Math.floor((now - new Date(now.getFullYear(),0,0))/86400000);
+  const r = recipes[doy % recipes.length];
+  const btn = document.getElementById('recipe-fav-btn');
+  const isFav = favs.some(f => f.name === r.name);
+  if (btn) {
+    btn.classList.toggle('saved', isFav);
+    btn.innerHTML = isFav ? '❤️ Gespeichert' : '🤍 Zu Favoriten';
+  }
+  renderRecipeFavList();
+}
+function renderRecipeFavList() {
+  const container = document.getElementById('recipe-favlist-container');
+  if (!container) return;
+  const favs = getRecipeFavs();
+  if (favs.length === 0) { container.innerHTML = ''; return; }
+  const items = favs.map(f => `
+    <div class="recipe-fav-item" onclick="showFavRecipe('${f.name.replace(/'/g,"\\'")}')">
+      <div class="recipe-fav-item-info">
+        <div class="recipe-fav-item-name">${f.name}</div>
+        <div class="recipe-fav-item-meta">${f.badge} · ${f.kcal} kcal · 🥩${f.protein}g · 🫙${f.fat}g · 🌾${f.carbs}g</div>
+      </div>
+      <button class="recipe-fav-remove" onclick="event.stopPropagation();removeRecipeFav('${f.name.replace(/'/g,"\\'")}')" title="Entfernen">✕</button>
+    </div>`).join('');
+  container.innerHTML = `
+    <div class="recipe-favlist">
+      <div class="recipe-favlist-title">❤️ Meine Favoriten</div>
+      ${items}
+    </div>`;
+}
+function showFavRecipe(name) {
+  haptic('light');
+  const r = recipes.find(x => x.name === name);
+  if (!r) return;
+  const ingHtml = r.ingredients.map(([n, amount, kcal]) =>
+    `<li><span>${n} <span style="color:#bbb;font-size:11px">${amount}</span></span><span style="color:#a05020;font-size:11px">${kcal}</span></li>`
+  ).join('');
+  const stepsHtml = r.steps.map(s => `<li>${s}</li>`).join('');
+  // show in a simple overlay
+  let overlay = document.getElementById('fav-recipe-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'fav-recipe-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom)';
+    overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div style="background:#fffaf5;border-radius:20px 20px 0 0;width:100%;max-height:82vh;overflow-y:auto;padding:20px 16px 30px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:16px;font-weight:700;color:#7a3810;">${r.name}</div>
+        <button onclick="document.getElementById('fav-recipe-overlay').remove()" style="font-size:22px;background:none;border:none;color:#a05020;cursor:pointer;">✕</button>
+      </div>
+      <span class="recipe-kcal-badge">${r.badge} · ${r.kcal} kcal</span>
+      <div class="recipe-macros" style="margin-top:8px;">
         <span class="recipe-macro">🥩 ${r.protein}g Protein</span>
         <span class="recipe-macro">🫙 ${r.fat}g Fett</span>
         <span class="recipe-macro">🌾 ${r.carbs}g KH</span>
