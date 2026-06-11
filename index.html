@@ -8498,11 +8498,10 @@ function renderRecipe(offset) {
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div style="display:flex;gap:4px;">
             <button onclick="showRecipeView()" style="background:${_recipeView==='recipe'?'#ff6b2b':'#fff3e8'};border:1.5px solid ${_recipeView==='recipe'?'#ff6b2b':'#f8c8a0'};border-radius:10px;padding:5px 12px;font-size:12px;font-weight:700;color:${_recipeView==='recipe'?'#fff':'#a05020'};cursor:pointer;">🍽️ Rezept des Tages</button>
-            <button onclick="showFavoritesView()" style="background:${_recipeView==='favorites'?'#ff6b2b':'#fff3e8'};border:1.5px solid ${_recipeView==='favorites'?'#ff6b2b':'#f8c8a0'};border-radius:10px;padding:5px 12px;font-size:12px;font-weight:700;color:${_recipeView==='favorites'?'#fff':'#a05020'};cursor:pointer;">⭐ Meine Favoriten</button>
+            <button onclick="showFavoritesView()" style="background:${_recipeView==='favorites'?'#ff6b2b':'#fff3e8'};border:1.5px solid ${_recipeView==='favorites'?'#ff6b2b':'#f8c8a0'};border-radius:10px;padding:5px 12px;font-size:12px;font-weight:700;color:${_recipeView==='favorites'?'#fff':'#a05020'};cursor:pointer;">Meine Favoriten</button>
           </div>
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <button class="share-btn" onclick="toggleFavRecipe()" style="font-size:16px;line-height:1;padding:5px 10px;${fav?'background:#fff3e0;border-color:#ffb84d;color:#f59e0b;':''}" title="Als Favorit speichern">${fav ? '⭐' : '☆'}</button>
           <button class="share-btn" onclick="shareRecipeCanvas()">📸 Teilen</button>
         </div>
       </div>
@@ -8519,7 +8518,7 @@ function renderRecipe(offset) {
         <button onclick="haptic();renderRecipe(${_recipeOffset + 1})" style="background:#fff3e8;border:1.5px solid #f8c8a0;border-radius:12px;padding:8px 14px;font-size:18px;cursor:pointer;color:#a05020;font-weight:700;">→</button>
       </div>
       <span class="recipe-kcal-badge">${r.badge} · ${r.kcal} kcal</span>
-      <div class="recipe-name">${r.name} ${fav ? '<span style="font-size:14px;">⭐</span>' : ''}</div>
+      <div class="recipe-name">${r.name} <span onclick="toggleFavRecipe()" style="font-size:14px;cursor:pointer;" title="Als Favorit speichern">${fav ? '⭐' : '☆'}</span></div>
       <div class="recipe-macros">
         <span class="recipe-macro">🥩 ${r.protein}g Protein</span>
         <span class="recipe-macro">🫙 ${r.fat}g Fett</span>
