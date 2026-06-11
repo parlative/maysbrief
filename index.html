@@ -1747,91 +1747,20 @@ async function shareCard(cardId, emoji, title) {
   }
 }
 
-function showImageShareSheet(blob, emoji, title, cardId) {
-  const existing = document.getElementById('custom-share-sheet');
-  if (existing) existing.remove();
-
-  const imgUrl = URL.createObjectURL(blob);
-  const file = new File([blob], 'morning-brief.png', { type: 'image/png' });
-
-  const sheet = document.createElement('div');
-  sheet.id = 'custom-share-sheet';
-  sheet.style.cssText = `
-    position:fixed; inset:0; z-index:9999;
-    display:flex; flex-direction:column; justify-content:flex-end;
-    background:rgba(0,0,0,0.5);`;
-
-  sheet.innerHTML = `
-    <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom)+16px);max-height:80vh;overflow-y:auto;">
-      <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 16px;"></div>
-      <img src="${imgUrl}" style="width:100%;border-radius:12px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.12);" />
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-        <button id="ss-native" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:#007aff;display:flex;align-items:center;justify-content:center;font-size:26px;">📤</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">Teilen</span>
-        </button>
-        <button id="ss-download" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:#34c759;display:flex;align-items:center;justify-content:center;font-size:26px;">💾</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">Speichern</span>
-        </button>
-        <button id="ss-instagram" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px;">📸</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">Instagram</span>
-        </button>
-        <button id="ss-whatsapp" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:#25d366;display:flex;align-items:center;justify-content:center;font-size:26px;">💬</div>
-          <span style="font-size:11px;color:#333;font-weight:500;">WhatsApp</span>
-        </button>
-      </div>
-      <button id="ss-cancel" style="width:100%;background:#f2f2f7;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;color:#333;cursor:pointer;">Abbrechen</button>
-    </div>`;
-
-  document.body.appendChild(sheet);
-  sheet.addEventListener('click', e => { if (e.target === sheet) { sheet.remove(); URL.revokeObjectURL(imgUrl); }});
-
-  // Native share (with image file)
-  document.getElementById('ss-native').onclick = async () => {
-    try { await navigator.share({ title: `${emoji} ${title}`, files: [file] }); }
-    catch(e) { if(e.name!=='AbortError') { await navigator.share({ title: `${emoji} ${title}`, text: `${emoji} ${title} — Maya's Morning Brief 🌅` }); } }
-    sheet.remove(); URL.revokeObjectURL(imgUrl);
-  };
-
-  // Download / Foto speichern
-  document.getElementById('ss-download').onclick = () => {
-    const a = document.createElement('a');
-    a.href = imgUrl; a.download = `morning-brief-${title.replace(/\s/g,'-')}.png`;
-    a.click();
-    showToast('💾 Bild gespeichert!');
-    sheet.remove();
-  };
-
-  // Instagram — Bild in Zwischenablage + Instagram öffnen
-  document.getElementById('ss-instagram').onclick = async () => {
-    sheet.remove();
-    // Versuche natives Share mit Bild
-    try {
-      await navigator.share({ files: [file] });
-    } catch {
-      // Fallback: Download + Instagram öffnen
-      const a = document.createElement('a'); a.href = imgUrl; a.download = 'morning-brief.png'; a.click();
-      setTimeout(() => { window.location.href = 'instagram://'; }, 500);
-      showToast('📸 Bild gespeichert → Instagram öffnen → Bild einfügen');
+async function showImageShareSheet(blob, emoji, title, cardId) {
+  const file = new File([blob], 'aidy.png', { type: 'image/png' });
+  try {
+    await navigator.share({ files: [file], title: `${emoji} ${title}` });
+  } catch(e) {
+    if (e.name !== 'AbortError') {
+      // Fallback: download
+      const imgUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = imgUrl; a.download = 'aidy.png'; a.click();
+      setTimeout(() => URL.revokeObjectURL(imgUrl), 1000);
+      showToast('💾 Bild gespeichert');
     }
-    URL.revokeObjectURL(imgUrl);
-  };
-
-  // WhatsApp
-  document.getElementById('ss-whatsapp').onclick = async () => {
-    sheet.remove();
-    try {
-      await navigator.share({ files: [file], title: `${emoji} ${title}` });
-    } catch {
-      window.open(`https://wa.me/?text=${encodeURIComponent(`${emoji} ${title} — Maya's Morning Brief 🌅`)}`, '_blank');
-    }
-    URL.revokeObjectURL(imgUrl);
-  };
-
-  document.getElementById('ss-cancel').onclick = () => { sheet.remove(); URL.revokeObjectURL(imgUrl); };
+  }
 }
 
 function showToast(msg) {
@@ -1879,7 +1808,7 @@ async function generateInstagramImage(type) {
     if (q.a) { ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = 'italic 34px -apple-system, Arial'; ctx.fillText(`— ${q.a}`, 540, 900); }
     // Watermark
     ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '26px -apple-system, Arial';
-    ctx.fillText(`Maya's Morning Brief · ${dateStr}`, 540, 1040);
+    ctx.fillText('by Aidy', 540, 1040);
 
   } else if (type === 'history') {
     const key = `${now.getMonth()+1}-${now.getDate()}`;
@@ -1912,7 +1841,7 @@ async function generateInstagramImage(type) {
     ctx.fillText(`📆 Vor ${ago} Jahren`, 540, 960);
     // Watermark
     ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '26px -apple-system, Arial';
-    ctx.fillText(`Maya's Morning Brief · ${dateStr}`, 540, 1045);
+    ctx.fillText('by Aidy', 540, 1045);
 
   } else if (type === 'evening-quote') {
     const eq = eveningQuotes[getDailyIndex(eveningQuotes.length)];
@@ -1931,7 +1860,7 @@ async function generateInstagramImage(type) {
     }
     if (eq.a) { ctx.fillStyle = '#818cf8'; ctx.font = 'italic 34px -apple-system, Arial'; ctx.fillText(`— ${eq.a}`, 540, 940); }
     ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.font = '26px -apple-system, Arial';
-    ctx.fillText(`Maya's Morning Brief · ${dateStr}`, 540, 1045);
+    ctx.fillText('by Aidy', 540, 1045);
   }
 
   return new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
@@ -1961,62 +1890,17 @@ async function shareInstagramCard(type) {
     const blob = await generateInstagramImage(type);
     if (btn) { btn.textContent = '⎙ Teilen'; btn.disabled = false; }
     if (!blob) { showToast('Kein Inhalt verfügbar'); return; }
-    const file = new File([blob], 'maya-brief.png', { type: 'image/png' });
-    const imgUrl = URL.createObjectURL(blob);
-
-    // Show Instagram-optimized share sheet
-    document.getElementById('custom-share-sheet')?.remove();
-    const sheet = document.createElement('div');
-    sheet.id = 'custom-share-sheet';
-    sheet.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.6);';
-    sheet.innerHTML = `
-      <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom)+16px);">
-        <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 14px;"></div>
-        <div style="font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:12px;">Instagram-Bild teilen</div>
-        <img src="${imgUrl}" style="width:100%;max-height:280px;object-fit:contain;border-radius:12px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.15);">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
-          <button id="igs-instagram" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-            <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:28px;">📸</div>
-            <span style="font-size:11px;color:#333;font-weight:600;">Instagram</span>
-          </button>
-          <button id="igs-native" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-            <div style="width:56px;height:56px;border-radius:14px;background:#007aff;display:flex;align-items:center;justify-content:center;font-size:28px;">📤</div>
-            <span style="font-size:11px;color:#333;font-weight:600;">Teilen</span>
-          </button>
-          <button id="igs-save" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-            <div style="width:56px;height:56px;border-radius:14px;background:#34c759;display:flex;align-items:center;justify-content:center;font-size:28px;">💾</div>
-            <span style="font-size:11px;color:#333;font-weight:600;">Speichern</span>
-          </button>
-        </div>
-        <div style="font-size:12px;color:#888;text-align:center;margin-bottom:12px;">💡 Tipp: Bild speichern → Instagram öffnen → Story/Post erstellen → Bild einfügen und bearbeiten</div>
-        <button id="igs-cancel" style="width:100%;background:#f2f2f7;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;color:#333;cursor:pointer;">Abbrechen</button>
-      </div>`;
-    document.body.appendChild(sheet);
-    sheet.addEventListener('click', e => { if (e.target === sheet) { sheet.remove(); URL.revokeObjectURL(imgUrl); }});
-
-    document.getElementById('igs-instagram').onclick = async () => {
-      sheet.remove();
-      // Try native share first (saves to photos on iOS → can then open in Instagram)
-      if (navigator.share && navigator.canShare?.({files:[file]})) {
-        try { await navigator.share({ files: [file], title: "Maya's Brief" }); } catch {}
-      } else {
-        // Fallback: download + open Instagram
-        const a = document.createElement('a'); a.href = imgUrl; a.download = 'maya-brief.png'; a.click();
-        setTimeout(() => { window.location.href = 'instagram://'; }, 600);
-        showToast('📸 Gespeichert → Instagram öffnen');
+    const file = new File([blob], 'aidy.png', { type: 'image/png' });
+    try {
+      await navigator.share({ files: [file], title: 'by Aidy' });
+    } catch(e) {
+      if (e.name !== 'AbortError') {
+        const imgUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = imgUrl; a.download = 'aidy.png'; a.click();
+        setTimeout(() => URL.revokeObjectURL(imgUrl), 1000);
+        showToast('💾 Bild gespeichert');
       }
-      URL.revokeObjectURL(imgUrl);
-    };
-    document.getElementById('igs-native').onclick = async () => {
-      try { await navigator.share({ files: [file], title: "Maya's Morning Brief" }); } catch {}
-      sheet.remove(); URL.revokeObjectURL(imgUrl);
-    };
-    document.getElementById('igs-save').onclick = () => {
-      const a = document.createElement('a'); a.href = imgUrl; a.download = 'maya-brief.png'; a.click();
-      showToast('💾 Bild in Fotos gespeichert!');
-      sheet.remove();
-    };
-    document.getElementById('igs-cancel').onclick = () => { sheet.remove(); URL.revokeObjectURL(imgUrl); };
+    }
   } catch(e) {
     if (btn) { btn.textContent = '⎙ Teilen'; btn.disabled = false; }
     showToast('Fehler beim Erstellen des Bildes');
@@ -8629,9 +8513,9 @@ async function shareRecipeCanvas() {
 
     // Badge (ohne kcal)
     ctx.fillStyle = '#ff6b2b';
-    ctx.beginPath(); ctx.roundRect(60, 160, ctx.measureText(`${r.badge} ${r.category}`).width + 50, 52, 26); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(60, 160, ctx.measureText(`${r.badge}`).width + 50, 52, 26); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.font = 'bold 28px -apple-system, Arial';
-    ctx.fillText(`${r.badge} ${r.category || 'Frühstück'}`, 85, 196);
+    ctx.fillText(`${r.badge}`, 85, 196);
 
     // Name (umbrechen)
     let y = wrapText(r.name, 60, 290, 960, 60, 'bold 52px -apple-system, Arial', '#7a3810');
@@ -9827,15 +9711,15 @@ async function generateWordCard() {
   ctx.fillStyle = '#6366f1'; ctx.font = 'italic 36px -apple-system, Arial';
   wrapText(ctx, w.ex, 540, 740, 860, 50);
 
-  // German translation
+  // German translation — centered
   ctx.fillStyle = '#818cf8'; ctx.font = '32px -apple-system, Arial';
+  ctx.textAlign = 'center';
   wrapText(ctx, '🇩🇪 ' + w.de, 540, 880, 860, 45);
 
-  // Watermark
-  const now = new Date();
-  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  // Footer
   ctx.fillStyle = 'rgba(55,48,163,0.3)'; ctx.font = '24px -apple-system, Arial';
-  ctx.fillText(`Maya's Morning Brief · ${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()}`, 540, 1048);
+  ctx.textAlign = 'center';
+  ctx.fillText('by Aidy', 540, 1048);
 
   return new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
 }
@@ -9848,57 +9732,17 @@ async function shareWordCard() {
     const blob = await generateWordCard();
     if (btn) { btn.textContent = '📸 Teilen'; btn.disabled = false; }
     if (!blob) { showToast('Fehler'); return; }
-    const file = new File([blob], 'word-of-the-day.png', { type: 'image/png' });
-    const imgUrl = URL.createObjectURL(blob);
-
-    document.getElementById('custom-share-sheet')?.remove();
-    const sheet = document.createElement('div');
-    sheet.id = 'custom-share-sheet';
-    sheet.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.5);';
-    sheet.innerHTML = `
-      <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom)+16px);">
-        <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 14px;"></div>
-        <img src="${imgUrl}" style="width:100%;max-height:300px;object-fit:contain;border-radius:12px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
-          <button id="wds-instagram" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-            <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:28px;">📸</div>
-            <span style="font-size:11px;color:#333;font-weight:600;">Instagram</span>
-          </button>
-          <button id="wds-native" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-            <div style="width:56px;height:56px;border-radius:14px;background:#007aff;display:flex;align-items:center;justify-content:center;font-size:28px;">📤</div>
-            <span style="font-size:11px;color:#333;font-weight:600;">Teilen</span>
-          </button>
-          <button id="wds-save" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;">
-            <div style="width:56px;height:56px;border-radius:14px;background:#34c759;display:flex;align-items:center;justify-content:center;font-size:28px;">💾</div>
-            <span style="font-size:11px;color:#333;font-weight:600;">Speichern</span>
-          </button>
-        </div>
-        <button id="wds-cancel" style="width:100%;background:#f2f2f7;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:600;color:#333;cursor:pointer;">Abbrechen</button>
-      </div>`;
-    document.body.appendChild(sheet);
-    sheet.addEventListener('click', e => { if (e.target === sheet) { sheet.remove(); URL.revokeObjectURL(imgUrl); }});
-
-    document.getElementById('wds-instagram').onclick = async () => {
-      sheet.remove();
-      if (navigator.share && navigator.canShare?.({files:[file]})) {
-        try { await navigator.share({ files: [file], title: "Word of the Day — Maya's Brief" }); } catch {}
-      } else {
-        const a = document.createElement('a'); a.href = imgUrl; a.download = 'word-of-the-day.png'; a.click();
-        setTimeout(() => { window.location.href = 'instagram://'; }, 600);
-        showToast('📸 Gespeichert → Instagram öffnen');
+    const file = new File([blob], 'aidy-word.png', { type: 'image/png' });
+    try {
+      await navigator.share({ files: [file], title: 'Word of the Day' });
+    } catch(e) {
+      if (e.name !== 'AbortError') {
+        const imgUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = imgUrl; a.download = 'aidy-word.png'; a.click();
+        setTimeout(() => URL.revokeObjectURL(imgUrl), 1000);
+        showToast('💾 Bild gespeichert');
       }
-      URL.revokeObjectURL(imgUrl);
-    };
-    document.getElementById('wds-native').onclick = async () => {
-      try { await navigator.share({ files: [file], title: "Word of the Day — Maya's Morning Brief" }); } catch {}
-      sheet.remove(); URL.revokeObjectURL(imgUrl);
-    };
-    document.getElementById('wds-save').onclick = () => {
-      const a = document.createElement('a'); a.href = imgUrl; a.download = 'word-of-the-day.png'; a.click();
-      showToast('💾 Bild gespeichert!');
-      sheet.remove();
-    };
-    document.getElementById('wds-cancel').onclick = () => { sheet.remove(); URL.revokeObjectURL(imgUrl); };
+    }
   } catch(e) {
     if (btn) { btn.textContent = '📸 Teilen'; btn.disabled = false; }
     showToast('Fehler beim Erstellen');
