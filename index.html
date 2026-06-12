@@ -440,8 +440,8 @@
     .grounding-step.done .grounding-num { background:#b8845a; }
 
     /* Reflection textarea */
-    .reflect-area { width:100%;background:#faf4ea;border:1.5px solid #d4b896;border-radius:13px;padding:10px 12px;font-size:14px;color:#3d2b1f;outline:none;resize:none;font-family:inherit;line-height:1.5;overflow:hidden;box-sizing:border-box;min-height:80px; }
-    .reflect-area:focus { border-color:#d4a574;box-shadow:0 0 0 3px rgba(184,144,106,0.12); }
+    .reflect-area { width:100%;background:#f4f8fb;border:1.5px solid #b8cfe0;border-radius:13px;padding:10px 12px;font-size:14px;color:#2c3e50;outline:none;resize:none;font-family:inherit;line-height:1.5;overflow:hidden;box-sizing:border-box;min-height:80px; }
+    .reflect-area:focus { border-color:#3a6186;box-shadow:0 0 0 3px rgba(58,97,134,0.10); }
     .aidy-btn { background:#d4a574;color:#fff;border:none;border-radius:13px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:transform 0.1s,opacity 0.15s;width:100%;margin-top:8px; }
     .aidy-btn:active { transform:scale(0.97);opacity:0.85; }
     .aidy-btn.secondary { background:#f5ece0;color:#8c6040;border:1.5px solid #d4b896; }
@@ -1547,31 +1547,31 @@ function renderSummary() {
   const savedReflect = getReflection();
   const reflectionHtml = savedReflect ? `` : `
     <div id="reflection-card">
-      <div class="aidy-title" style="margin-bottom:12px;">📔 Tagesreflexion</div>
-      <div style="font-size:12px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wie war dein Tag? (1–10)</div>
+      <div class="aidy-title" style="margin-bottom:12px;">🌿 Tagesreflexion</div>
+      <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wie war dein Tag? (1–10)</div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <span style="font-size:13px;color:var(--subtext);">😰 1</span>
+        <span style="font-size:13px;color:var(--subtext);">😔 1</span>
         <input type="range" id="reflect-mood" min="1" max="10" value="7" style="flex:1;" oninput="document.getElementById('mood-val').textContent=this.value">
-        <span style="font-size:13px;color:var(--subtext);">10 🌟</span>
-        <span id="mood-val" style="font-size:16px;font-weight:800;color:#5b21b6;min-width:20px;">7</span>
+        <span style="font-size:13px;color:var(--subtext);">10 ✨</span>
+        <span id="mood-val" style="font-size:16px;font-weight:800;color:#3a6186;min-width:20px;">7</span>
       </div>
-      <div style="font-size:12px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">✅ Was war heute gut?</div>
+      <div style="font-size:12px;font-weight:700;color:#2e7d5e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">🌱 Was war heute gut?</div>
       <textarea id="reflect-good" class="reflect-area" placeholder="z.B. gutes Gespräch, Sport gemacht, lecker gegessen..." oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      <div style="font-size:12px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">💪 Was war schwierig?</div>
+      <div style="font-size:12px;font-weight:700;color:#8a6a3a;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">🌊 Was war schwierig?</div>
       <textarea id="reflect-hard" class="reflect-area" placeholder="Was hat dich heute herausgefordert?" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      <div style="font-size:12px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">🙏 Wofür bin ich dankbar?</div>
+      <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">🙏 Wofür bin ich dankbar?</div>
       <textarea id="reflect-grateful" class="reflect-area" placeholder="3 kleine oder große Dinge..." oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      <button class="aidy-btn" style="margin-top:12px;" onclick="submitReflection()">💜 Reflexion speichern</button>
+      <button class="aidy-btn" style="margin-top:12px;background:linear-gradient(135deg,#3a6186,#5a8ab0);" onclick="submitReflection()">✓ Reflexion speichern</button>
     </div>`;
 
   const reflectionContent = savedReflect ? (() => {
     const r = savedReflect;
     const moodEmoji = ['😰','😟','😕','😐','🙂','😊','😄','🥰','🤩','🌟'][Math.min(r.mood-1,9)];
     return `<div id="reflection-card">
-      <div style="text-align:center;margin-bottom:10px;"><span style="font-size:42px;">${moodEmoji}</span><div style="font-size:15px;font-weight:700;color:#5b21b6;margin-top:4px;">Stimmung: ${r.mood}/10</div></div>
-      ${r.good?`<div style="background:rgba(22,163,74,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #86efac;"><div style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Was gut war</div><div style="font-size:14px;">${r.good}</div></div>`:''}
-      ${r.hard?`<div style="background:rgba(255,159,10,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #fcd34d;"><div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Was schwierig war</div><div style="font-size:14px;">${r.hard}</div></div>`:''}
-      ${r.grateful?`<div style="background:rgba(124,58,237,0.08);border-radius:12px;padding:10px 12px;border-left:4px solid #c4b5fd;"><div style="font-size:11px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Dankbarkeit</div><div style="font-size:14px;">${r.grateful}</div></div>`:''}
+      <div style="text-align:center;margin-bottom:10px;"><span style="font-size:42px;">${moodEmoji}</span><div style="font-size:15px;font-weight:700;color:#3a6186;margin-top:4px;">Stimmung: ${r.mood}/10</div></div>
+      ${r.good?`<div style="background:rgba(46,125,94,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #6abf99;"><div style="font-size:11px;font-weight:700;color:#2e7d5e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">🌱 Was gut war</div><div style="font-size:14px;">${r.good}</div></div>`:''}
+      ${r.hard?`<div style="background:rgba(138,106,58,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #c4a265;"><div style="font-size:11px;font-weight:700;color:#8a6a3a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">🌊 Was schwierig war</div><div style="font-size:14px;">${r.hard}</div></div>`:''}
+      ${r.grateful?`<div style="background:rgba(58,97,134,0.08);border-radius:12px;padding:10px 12px;border-left:4px solid #7aafd4;"><div style="font-size:11px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">🙏 Dankbarkeit</div><div style="font-size:14px;">${r.grateful}</div></div>`:''}
       <div style="display:flex;gap:8px;margin-top:10px;">
         <button class="aidy-btn secondary" style="flex:1;" onclick="editReflection()">✏️ Bearbeiten</button>
         <button class="aidy-btn secondary" style="flex:1;background:#fff0f0;color:#b91c1c;border-color:#fca5a5;" onclick="clearReflection()">🗑️ Löschen</button>
@@ -1622,8 +1622,8 @@ function renderSummary() {
       <div class="summary-card-title">☑️ Offene Aufgaben (${todos.length})</div>
       ${openTodosHtml}
     </div>
-    <div class="summary-card" style="animation-delay:0.17s;background:linear-gradient(135deg,#f5f0ff,#ede8ff);border-color:#c4b5fd;">
-      <div class="summary-card-title" style="color:#5b21b6;">📔 Tagesreflexion</div>
+    <div class="summary-card" style="animation-delay:0.17s;background:linear-gradient(135deg,#f0f4f8,#e8eef5);border-color:#b0c4d8;">
+      <div class="summary-card-title" style="color:#2c4a6e;">🌿 Tagesreflexion</div>
       ${reflectionContent}
     </div>
     <div class="summary-card motivation-card" style="animation-delay:0.2s;background:linear-gradient(135deg,#1a1a2e,#16213e);border-color:#2d1b69;">
@@ -8848,14 +8848,14 @@ function renderReflectionResult() {
   const el = document.getElementById('reflection-card');
   if (!el) return;
   el.innerHTML = `
-    <div class="aidy-title">📔 Deine Reflexion</div>
+    <div class="aidy-title">🌿 Deine Reflexion</div>
     <div style="text-align:center;padding:12px 0;">
       <div style="font-size:48px;">${moodEmoji}</div>
-      <div style="font-size:16px;font-weight:700;color:#5b21b6;margin-top:4px;">Stimmung: ${moodLabel} (${r.mood}/10)</div>
+      <div style="font-size:16px;font-weight:700;color:#3a6186;margin-top:4px;">Stimmung: ${moodLabel} (${r.mood}/10)</div>
     </div>
-    ${r.good?`<div style="background:rgba(22,163,74,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #86efac;"><div style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">✅ Was gut war</div><div style="font-size:14px;color:var(--text);">${r.good}</div></div>`:''}
-    ${r.hard?`<div style="background:rgba(255,159,10,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #fcd34d;"><div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">💪 Was schwierig war</div><div style="font-size:14px;color:var(--text);">${r.hard}</div></div>`:''}
-    ${r.grateful?`<div style="background:rgba(124,58,237,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #c4b5fd;"><div style="font-size:11px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🙏 Dankbarkeit</div><div style="font-size:14px;color:var(--text);">${r.grateful}</div></div>`:''}
+    ${r.good?`<div style="background:rgba(46,125,94,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #6abf99;"><div style="font-size:11px;font-weight:700;color:#2e7d5e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🌱 Was gut war</div><div style="font-size:14px;color:var(--text);">${r.good}</div></div>`:''}
+    ${r.hard?`<div style="background:rgba(138,106,58,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #c4a265;"><div style="font-size:11px;font-weight:700;color:#8a6a3a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🌊 Was schwierig war</div><div style="font-size:14px;color:var(--text);">${r.hard}</div></div>`:''}
+    ${r.grateful?`<div style="background:rgba(58,97,134,0.08);border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #7aafd4;"><div style="font-size:11px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🙏 Dankbarkeit</div><div style="font-size:14px;color:var(--text);">${r.grateful}</div></div>`:''}
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button class="aidy-btn secondary" style="flex:1;" onclick="editReflection()">✏️ Bearbeiten</button>
       <button class="aidy-btn secondary" style="flex:1;" onclick="openReflectionArchive()">📚 Archiv</button>
@@ -8874,22 +8874,22 @@ function editReflection() {
   const el = document.getElementById('reflection-card');
   if (!el) return;
   el.innerHTML = `
-    <div class="aidy-title" style="margin-bottom:12px;">📔 Tagesreflexion bearbeiten</div>
-    <div style="font-size:12px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wie war dein Tag? (1–10)</div>
+    <div class="aidy-title" style="margin-bottom:12px;">🌿 Tagesreflexion bearbeiten</div>
+    <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wie war dein Tag? (1–10)</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <span style="font-size:13px;color:var(--subtext);">😰 1</span>
+      <span style="font-size:13px;color:var(--subtext);">😔 1</span>
       <input type="range" id="reflect-mood" min="1" max="10" value="${r.mood}" style="flex:1;" oninput="document.getElementById('mood-val').textContent=this.value">
-      <span style="font-size:13px;color:var(--subtext);">10 🌟</span>
-      <span id="mood-val" style="font-size:16px;font-weight:800;color:#5b21b6;min-width:20px;">${r.mood}</span>
+      <span style="font-size:13px;color:var(--subtext);">10 ✨</span>
+      <span id="mood-val" style="font-size:16px;font-weight:800;color:#3a6186;min-width:20px;">${r.mood}</span>
     </div>
-    <div style="font-size:12px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">✅ Was war heute gut?</div>
-    <textarea id="reflect-good" class="reflect-area" rows="2" placeholder="z.B. gutes Gespräch, Sport gemacht...">${r.good||''}</textarea>
-    <div style="font-size:12px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">💪 Was war schwierig?</div>
-    <textarea id="reflect-hard" class="reflect-area" rows="2" placeholder="Was hat dich heute herausgefordert?">${r.hard||''}</textarea>
-    <div style="font-size:12px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">🙏 Wofür bin ich dankbar?</div>
-    <textarea id="reflect-grateful" class="reflect-area" rows="2" placeholder="3 kleine oder große Dinge...">${r.grateful||''}</textarea>
+    <div style="font-size:12px;font-weight:700;color:#2e7d5e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">🌱 Was war heute gut?</div>
+    <textarea id="reflect-good" class="reflect-area" rows="2" placeholder="z.B. gutes Gespräch, Sport gemacht..." oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${r.good||''}</textarea>
+    <div style="font-size:12px;font-weight:700;color:#8a6a3a;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">🌊 Was war schwierig?</div>
+    <textarea id="reflect-hard" class="reflect-area" rows="2" placeholder="Was hat dich heute herausgefordert?" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${r.hard||''}</textarea>
+    <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 5px;">🙏 Wofür bin ich dankbar?</div>
+    <textarea id="reflect-grateful" class="reflect-area" rows="2" placeholder="3 kleine oder große Dinge..." oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${r.grateful||''}</textarea>
     <div style="display:flex;gap:8px;margin-top:12px;">
-      <button class="aidy-btn" style="flex:2;" onclick="submitReflection()">💜 Speichern</button>
+      <button class="aidy-btn" style="flex:2;background:linear-gradient(135deg,#3a6186,#5a8ab0);" onclick="submitReflection()">✓ Speichern</button>
       <button class="aidy-btn secondary" style="flex:1;" onclick="renderReflectionResult()">Abbrechen</button>
     </div>`;
 }
