@@ -1547,8 +1547,7 @@ function renderSummary() {
   const savedReflect = getReflection();
   const reflectionHtml = savedReflect ? `` : `
     <div id="reflection-card">
-      <div class="aidy-title" style="margin-bottom:12px;">🌿 Tagesreflexion</div>
-      <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wie war dein Tag? (1–10)</div>
+      <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">So war mein Tag: (1–10)</div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
         <span style="font-size:13px;color:var(--subtext);">😔 1</span>
         <input type="range" id="reflect-mood" min="1" max="10" value="7" style="flex:1;" oninput="document.getElementById('mood-val').textContent=this.value">
@@ -8874,8 +8873,7 @@ function editReflection() {
   const el = document.getElementById('reflection-card');
   if (!el) return;
   el.innerHTML = `
-    <div class="aidy-title" style="margin-bottom:12px;">🌿 Tagesreflexion bearbeiten</div>
-    <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Wie war dein Tag? (1–10)</div>
+    <div style="font-size:12px;font-weight:700;color:#3a6186;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">So war mein Tag: (1–10)</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <span style="font-size:13px;color:var(--subtext);">😔 1</span>
       <input type="range" id="reflect-mood" min="1" max="10" value="${r.mood}" style="flex:1;" oninput="document.getElementById('mood-val').textContent=this.value">
